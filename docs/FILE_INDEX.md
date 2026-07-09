@@ -41,7 +41,7 @@ responsibility lives. Update this when adding or removing files.
 |---|---|
 | `__init__.py` | Subpackage docstring. |
 | `run_dir.py` | `RunDirectory` layout + `TranscriptEvent`/`CommandRecord` JSONL contracts. The basis for post-hoc metric recomputation. |
-| `workspace.py` | `Workspace`: git-backed per-run checkout; apply/reverse patches, final diff, run pytest node ids. |
+| `workspace.py` | `Workspace`: git-backed checkout (`from_template` for fixtures, `from_git` for real repos); apply/reverse patches, final diff, run pytest. |
 | `patch_utils.py` | Unified-diff parsing → `DiffMetrics` (files_touched, loc_added/deleted) + changed files. |
 | `run_manager.py` | `run_single`: orchestrates one (task, agent, condition) run end-to-end. |
 
@@ -63,6 +63,13 @@ responsibility lives. Update this when adding or removing files.
 | `context_pack.py` | C1 context generator (repo file map + test hints), lexical/leak-free. |
 | `memory.py` | C5 repo-memory generator (AGENTS.md-style, from repo contents). |
 | `gates.py` | C3 deterministic gates (compileall blocking; ruff/bandit advisory). |
+
+### `src/se_support/datasets/` — importers & sampling (T2)
+
+| Path | Purpose |
+|---|---|
+| `swebench_importer.py` | SWE-bench Verified → TaskSpec JSONL; pure record mapping (tested offline) + optional `datasets` download. |
+| `task_sampler.py` | `sample_tasks` (head / stratified-by-repo, seeded) + load/write JSONL. |
 
 ### `src/se_support/evaluation/` — correctness scoring
 
@@ -90,6 +97,8 @@ in diffs.
 | `test_run_dir.py` | Run-directory creation + JSONL round-trip. |
 | `test_pipeline.py` | End-to-end mock-agent pipeline on the fixture repo (gold resolves, empty/broken do not). |
 | `test_llm_agent.py` | Controllable LLM agent + conditions via ScriptedChatClient (offline, no GPU). |
+| `test_importer.py` | SWE-bench importer + sampler on a SWE-bench-shaped fixture (offline, no download). |
+| `fixtures/swebench_sample.jsonl` | Two SWE-bench-shaped raw records for importer tests. |
 | `fixtures/*.valid.json` | One valid example per model (also mirrors proposal §9). |
 | `fixtures/mini_repo/` | Tiny buggy repo (calc + tests) used as an offline task. |
 | `fixtures/mini_repo_gold.patch` | Gold patch that fixes the mini-repo bug. |

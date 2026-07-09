@@ -49,6 +49,41 @@ class Workspace:
         ws._git("commit", "-qm", "base")
         return ws
 
+    @classmethod
+    def from_git(
+        cls,
+        repo: str,
+        base_commit: str,
+        dest: Path,
+        run_dir: RunDirectory | None = None,
+        remote_base: str = "https://github.com",
+    ) -> Workspace:
+        """Clone ``repo`` and check out ``base_commit`` (real SWE-bench tasks).
+
+        Uses fetch-by-SHA (shallow) with a full-clone fallback. Requires network;
+        heavy repos take time. Official test evaluation still runs via the
+        SWE-bench Docker harness (later ticket); this materialises the base state
+        for the agent to edit.
+        """
+        dest = Path(dest)
+        if dest.exists():
+            shutil.rmtree(dest)
+        dest.mkdir(parents=True)
+        url = f"{remote_base}/{repo}.git"
+        ws = cls(dest, run_dir)
+        ws._git("init", "-q")
+        ws._git("config", "user.email", "runner@se-support.local")
+        ws._git("config", "user.name", "se-support-runner")
+        ws._git("remote", "add", "origin", url)
+        fetched = ws._git("fetch", "--depth", "1", "origin", base_commit, check=False)
+        if fetched.returncode != 0:
+            # Fallback: unshallow fetch of the commit.
+            ws._git("fetch", "origin", base_commit)
+        ws._git("checkout", "-q", base_commit)
+        # Re-anchor a local base commit so final_diff() works against it.
+        ws._git("checkout", "-q", "-B", "se_support_base")
+        return ws
+
     # -- git helpers ----------------------------------------------------------
     def _run(self, *cmd: str, step: int | None = None, check: bool = True):
         t0 = time.time()

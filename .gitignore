@@ -29,3 +29,9 @@ data/workspaces/
 .idea/
 .vscode/
 .DS_Store
+
+# Imported dataset artifacts (generated / large)
+data/tasks/
+data/gold_patches/
+data/test_patches/
+data/support_artifacts/

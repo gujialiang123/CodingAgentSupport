@@ -36,12 +36,24 @@ Implemented so far:
 - **Controllable `LLMAgent`** — a model-agnostic bash-loop agent that runs
   against any OpenAI-compatible endpoint (local vLLM now, pinned API later),
   validated end-to-end on a local RTX 4090 with Qwen2.5-Coder-7B.
+- **T2** — SWE-bench Verified importer (real dataset → TaskSpec JSONL) + task
+  sampler; verified against the real 500-task dataset.
 - Run-directory + JSONL logging so metrics can be recomputed from raw logs
   **without re-running experiments**.
 - Unit + end-to-end tests (offline, no GPU); `pytest` and `ruff` green.
 
-SWE-bench importer (T2), richer gates/context/tests generators, and a
-mini-SWE-agent adapter are the next steps.
+Docker-based official evaluation for real SWE-bench tasks and a mini-SWE-agent
+adapter are the next steps.
+
+## Import real tasks
+
+```bash
+pip install -e ".[data]"                       # brings in huggingface `datasets`
+python -m se_support import swebench-verified \
+  --output data/tasks/swebench_verified.jsonl --limit 50
+python -m se_support sample -i data/tasks/swebench_verified.jsonl \
+  -o data/tasks/pilot_50.jsonl --n 50 --strategy stratified
+```
 
 ## Run the pipeline
 

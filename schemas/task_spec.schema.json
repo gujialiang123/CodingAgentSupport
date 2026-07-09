@@ -74,6 +74,19 @@
       "description": "Reproducible eval image tag, if any.",
       "title": "Docker Image"
     },
+    "environment_setup_commit": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "Commit used to build the eval environment (SWE-bench).",
+      "title": "Environment Setup Commit"
+    },
     "fail_to_pass_tests": {
       "items": {
         "type": "string"
@@ -162,6 +175,32 @@
       "default": null,
       "description": "Command that runs the target tests.",
       "title": "Test Command"
+    },
+    "test_patch_path": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "Path to the test patch that reveals FAIL_TO_PASS/PASS_TO_PASS tests.",
+      "title": "Test Patch Path"
+    },
+    "version": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "Repo version tag (SWE-bench).",
+      "title": "Version"
     }
   },
   "required": [

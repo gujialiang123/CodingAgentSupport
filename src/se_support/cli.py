@@ -50,6 +50,30 @@ def _cmd_stub(args: argparse.Namespace) -> int:
     return 2
 
 
+def _cmd_import(args: argparse.Namespace) -> int:
+    from se_support.datasets import import_swebench_verified
+
+    if args.dataset != "swebench-verified":
+        print(f"dataset '{args.dataset}': {_NOT_IMPLEMENTED}", file=sys.stderr)
+        return 2
+    fixture = Path(args.fixture) if args.fixture else None
+    n = import_swebench_verified(
+        Path(args.output), limit=args.limit, fixture_path=fixture
+    )
+    print(f"imported {n} task(s) -> {args.output}")
+    return 0
+
+
+def _cmd_sample(args: argparse.Namespace) -> int:
+    from se_support.datasets import load_tasks, sample_tasks, write_tasks
+
+    tasks = load_tasks(Path(args.input))
+    chosen = sample_tasks(tasks, args.n, strategy=args.strategy, seed=args.seed)
+    write_tasks(chosen, Path(args.output))
+    print(f"sampled {len(chosen)}/{len(tasks)} ({args.strategy}) -> {args.output}")
+    return 0
+
+
 def _cmd_run(args: argparse.Namespace) -> int:
     import json
 
@@ -126,9 +150,27 @@ def build_parser() -> argparse.ArgumentParser:
     p_run.add_argument("--output", "-o", default=None, help="Runs root (default: runs/).")
     p_run.set_defaults(func=_cmd_run)
 
+    # import (implemented for swebench-verified)
+    p_import = sub.add_parser("import", help="Import a dataset into TaskSpec JSONL.")
+    p_import.add_argument("dataset", help="Dataset name (swebench-verified).")
+    p_import.add_argument("--output", "-o", required=True, help="Output JSONL path.")
+    p_import.add_argument("--limit", type=int, default=None, help="Max tasks to import.")
+    p_import.add_argument("--fixture", default=None,
+                          help="Offline JSONL of raw records (skip download).")
+    p_import.set_defaults(func=_cmd_import)
+
+    # sample (implemented)
+    p_sample = sub.add_parser("sample", help="Sample a task subset from a TaskSpec JSONL.")
+    p_sample.add_argument("--input", "-i", required=True, help="Input TaskSpec JSONL.")
+    p_sample.add_argument("--output", "-o", required=True, help="Output TaskSpec JSONL.")
+    p_sample.add_argument("--n", type=int, required=True, help="Number to sample.")
+    p_sample.add_argument("--strategy", default="stratified",
+                          choices=["stratified", "head"], help="Sampling strategy.")
+    p_sample.add_argument("--seed", type=int, default=0)
+    p_sample.set_defaults(func=_cmd_sample)
+
     # stubs (later tickets)
     for name, help_text in (
-        ("import", "Import tasks into TaskSpec JSONL (T2)."),
         ("evaluate", "Evaluate patches / run gates (T5)."),
         ("quality", "Compute patch quality cards (T8)."),
     ):

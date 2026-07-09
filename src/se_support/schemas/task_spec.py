@@ -37,6 +37,13 @@ class TaskSpec(SEModel):
         "Real SWE-bench tasks use repo+base_commit instead.",
     )
     gold_patch_path: str | None = Field(None, description="Path to the human reference patch.")
+    test_patch_path: str | None = Field(
+        None, description="Path to the test patch that reveals FAIL_TO_PASS/PASS_TO_PASS tests."
+    )
+    environment_setup_commit: str | None = Field(
+        None, description="Commit used to build the eval environment (SWE-bench)."
+    )
+    version: str | None = Field(None, description="Repo version tag (SWE-bench)." )
     fail_to_pass_tests: list[str] = Field(default_factory=list)
     pass_to_pass_tests: list[str] = Field(default_factory=list)
     metadata: TaskMetadata = Field(default_factory=TaskMetadata)
