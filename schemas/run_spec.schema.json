@@ -1,0 +1,71 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "agent": {
+      "description": "Agent scaffold name, e.g. mini_swe_agent.",
+      "title": "Agent",
+      "type": "string"
+    },
+    "condition": {
+      "description": "One of C0_minimal, C1_context, C2_tests, C3_gates, C4_harness, C5_memory, C6_full_stack.",
+      "title": "Condition",
+      "type": "string"
+    },
+    "created_at": {
+      "format": "date-time",
+      "title": "Created At",
+      "type": "string"
+    },
+    "max_cost_usd": {
+      "anyOf": [
+        {
+          "type": "number"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Max Cost Usd"
+    },
+    "max_turns": {
+      "default": 50,
+      "title": "Max Turns",
+      "type": "integer"
+    },
+    "max_wall_time_sec": {
+      "default": 3600,
+      "title": "Max Wall Time Sec",
+      "type": "integer"
+    },
+    "model": {
+      "description": "Pinned model/snapshot identifier.",
+      "title": "Model",
+      "type": "string"
+    },
+    "run_id": {
+      "description": "Unique run id (uuid).",
+      "title": "Run Id",
+      "type": "string"
+    },
+    "seed": {
+      "default": 0,
+      "title": "Seed",
+      "type": "integer"
+    },
+    "task_id": {
+      "description": "TaskSpec.task_id this run targets.",
+      "title": "Task Id",
+      "type": "string"
+    }
+  },
+  "required": [
+    "run_id",
+    "task_id",
+    "agent",
+    "model",
+    "condition"
+  ],
+  "title": "RunSpec",
+  "type": "object"
+}

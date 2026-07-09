@@ -1,0 +1,31 @@
+# Byte-compiled / cache
+__pycache__/
+*.py[cod]
+*.egg-info/
+.eggs/
+build/
+dist/
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.coverage
+htmlcov/
+
+# Environments
+.venv/
+venv/
+
+# Experiment outputs (large / regenerable) -- keep structure, ignore contents
+runs/**
+!runs/.gitkeep
+results/**
+!results/.gitkeep
+
+# Downloaded datasets / workspaces (large)
+data/raw/
+data/workspaces/
+
+# Editor / OS
+.idea/
+.vscode/
+.DS_Store

@@ -1,0 +1,12 @@
+{
+  "run_id": "11111111-2222-3333-4444-555555555555",
+  "task_id": "swebench__django__12345",
+  "agent": "mini_swe_agent",
+  "model": "gpt-frontier-2026-07-01",
+  "condition": "C6_full_stack",
+  "seed": 0,
+  "max_turns": 50,
+  "max_wall_time_sec": 3600,
+  "max_cost_usd": null,
+  "created_at": "2026-07-09T00:00:00Z"
+}

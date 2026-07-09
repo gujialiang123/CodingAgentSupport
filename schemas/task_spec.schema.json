@@ -1,0 +1,162 @@
+{
+  "$defs": {
+    "TaskMetadata": {
+      "additionalProperties": false,
+      "properties": {
+        "gold_files_touched": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Gold Files Touched"
+        },
+        "gold_loc_changed": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Gold Loc Changed"
+        },
+        "language": {
+          "default": "python",
+          "title": "Language",
+          "type": "string"
+        },
+        "repo_group": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Repo Group"
+        }
+      },
+      "title": "TaskMetadata",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "base_commit": {
+      "description": "Commit SHA of the pre-fix repository snapshot.",
+      "title": "Base Commit",
+      "type": "string"
+    },
+    "dataset": {
+      "description": "Source dataset, e.g. swebench_verified.",
+      "title": "Dataset",
+      "type": "string"
+    },
+    "docker_image": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "Reproducible eval image tag, if any.",
+      "title": "Docker Image"
+    },
+    "fail_to_pass_tests": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Fail To Pass Tests",
+      "type": "array"
+    },
+    "gold_patch_path": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "Path to the human reference patch.",
+      "title": "Gold Patch Path"
+    },
+    "issue_body": {
+      "default": "",
+      "title": "Issue Body",
+      "type": "string"
+    },
+    "issue_title": {
+      "default": "",
+      "title": "Issue Title",
+      "type": "string"
+    },
+    "metadata": {
+      "$ref": "#/$defs/TaskMetadata"
+    },
+    "pass_to_pass_tests": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Pass To Pass Tests",
+      "type": "array"
+    },
+    "repo": {
+      "description": "owner/name of the GitHub repository.",
+      "title": "Repo",
+      "type": "string"
+    },
+    "setup_command": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "Environment setup command, if any.",
+      "title": "Setup Command"
+    },
+    "task_id": {
+      "description": "Unique task id, e.g. swebench__django__12345.",
+      "title": "Task Id",
+      "type": "string"
+    },
+    "test_command": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "Command that runs the target tests.",
+      "title": "Test Command"
+    }
+  },
+  "required": [
+    "task_id",
+    "dataset",
+    "repo",
+    "base_commit"
+  ],
+  "title": "TaskSpec",
+  "type": "object"
+}

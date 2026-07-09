@@ -1,0 +1,11 @@
+{
+  "run_id": "11111111-2222-3333-4444-555555555555",
+  "status": "completed",
+  "patch_path": "runs/pilot_C6/11111111/final.patch",
+  "transcript_path": "runs/pilot_C6/11111111/transcript.jsonl",
+  "commands_path": "runs/pilot_C6/11111111/commands.jsonl",
+  "support_artifacts_dir": "runs/pilot_C6/11111111/support/",
+  "final_message_path": "runs/pilot_C6/11111111/final_message.md",
+  "duration_sec": 1234.5,
+  "error": null
+}

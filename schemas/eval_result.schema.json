@@ -1,0 +1,85 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "build_success": {
+      "default": false,
+      "title": "Build Success",
+      "type": "boolean"
+    },
+    "eval_log_path": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Eval Log Path"
+    },
+    "fail_to_pass_passed": {
+      "default": 0,
+      "title": "Fail To Pass Passed",
+      "type": "integer"
+    },
+    "fail_to_pass_total": {
+      "default": 0,
+      "title": "Fail To Pass Total",
+      "type": "integer"
+    },
+    "full_tests_status": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Full Tests Status"
+    },
+    "gate_results_path": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Gate Results Path"
+    },
+    "pass_to_pass_passed": {
+      "default": 0,
+      "title": "Pass To Pass Passed",
+      "type": "integer"
+    },
+    "pass_to_pass_total": {
+      "default": 0,
+      "title": "Pass To Pass Total",
+      "type": "integer"
+    },
+    "patch_applies": {
+      "default": false,
+      "title": "Patch Applies",
+      "type": "boolean"
+    },
+    "resolved": {
+      "default": false,
+      "title": "Resolved",
+      "type": "boolean"
+    },
+    "run_id": {
+      "title": "Run Id",
+      "type": "string"
+    }
+  },
+  "required": [
+    "run_id"
+  ],
+  "title": "EvalResult",
+  "type": "object"
+}

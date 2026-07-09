@@ -1,0 +1,306 @@
+{
+  "$defs": {
+    "FunctionalCorrectness": {
+      "additionalProperties": false,
+      "properties": {
+        "build_success": {
+          "default": false,
+          "title": "Build Success",
+          "type": "boolean"
+        },
+        "official_resolved": {
+          "default": false,
+          "title": "Official Resolved",
+          "type": "boolean"
+        },
+        "patch_applies": {
+          "default": false,
+          "title": "Patch Applies",
+          "type": "boolean"
+        },
+        "regression_failures": {
+          "default": 0,
+          "title": "Regression Failures",
+          "type": "integer"
+        }
+      },
+      "title": "FunctionalCorrectness",
+      "type": "object"
+    },
+    "Locality": {
+      "additionalProperties": false,
+      "properties": {
+        "files_touched": {
+          "default": 0,
+          "title": "Files Touched",
+          "type": "integer"
+        },
+        "gold_file_overlap": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Gold File Overlap"
+        },
+        "loc_added": {
+          "default": 0,
+          "title": "Loc Added",
+          "type": "integer"
+        },
+        "loc_deleted": {
+          "default": 0,
+          "title": "Loc Deleted",
+          "type": "integer"
+        },
+        "unrelated_file_change_suspected": {
+          "default": false,
+          "title": "Unrelated File Change Suspected",
+          "type": "boolean"
+        }
+      },
+      "title": "Locality",
+      "type": "object"
+    },
+    "Maintainability": {
+      "additionalProperties": false,
+      "properties": {
+        "complexity_delta": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Complexity Delta"
+        },
+        "duplication_delta": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Duplication Delta"
+        },
+        "lint_new_warnings": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Lint New Warnings"
+        },
+        "type_new_warnings": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Type New Warnings"
+        }
+      },
+      "title": "Maintainability",
+      "type": "object"
+    },
+    "QualityLevel": {
+      "enum": [
+        "Q0_invalid",
+        "Q1_plausible_failing",
+        "Q2_functionally_correct",
+        "Q3_engineering_acceptable",
+        "Q4_review_ready",
+        "Q5_human_quality"
+      ],
+      "title": "QualityLevel",
+      "type": "string"
+    },
+    "Reviewability": {
+      "additionalProperties": false,
+      "properties": {
+        "description_diff_consistent": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Description Diff Consistent"
+        },
+        "has_validation_report": {
+          "default": false,
+          "title": "Has Validation Report",
+          "type": "boolean"
+        },
+        "human_rating": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Human Rating"
+        }
+      },
+      "title": "Reviewability",
+      "type": "object"
+    },
+    "SecurityReliability": {
+      "additionalProperties": false,
+      "properties": {
+        "error_handling_concern": {
+          "default": false,
+          "title": "Error Handling Concern",
+          "type": "boolean"
+        },
+        "new_security_warnings": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "New Security Warnings"
+        },
+        "resource_cleanup_concern": {
+          "default": false,
+          "title": "Resource Cleanup Concern",
+          "type": "boolean"
+        }
+      },
+      "title": "SecurityReliability",
+      "type": "object"
+    },
+    "TestAdequacy": {
+      "additionalProperties": false,
+      "properties": {
+        "changed_line_coverage_delta": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Changed Line Coverage Delta"
+        },
+        "repro_test_fail_before": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Repro Test Fail Before"
+        },
+        "repro_test_pass_after": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Repro Test Pass After"
+        },
+        "tests_added": {
+          "default": 0,
+          "title": "Tests Added",
+          "type": "integer"
+        }
+      },
+      "title": "TestAdequacy",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "failure_modes": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Failure Modes",
+      "type": "array"
+    },
+    "functional_correctness": {
+      "$ref": "#/$defs/FunctionalCorrectness"
+    },
+    "locality": {
+      "$ref": "#/$defs/Locality"
+    },
+    "maintainability": {
+      "$ref": "#/$defs/Maintainability"
+    },
+    "notes": {
+      "default": "",
+      "title": "Notes",
+      "type": "string"
+    },
+    "quality_level": {
+      "$ref": "#/$defs/QualityLevel",
+      "default": "Q0_invalid"
+    },
+    "resolved": {
+      "default": false,
+      "title": "Resolved",
+      "type": "boolean"
+    },
+    "reviewability": {
+      "$ref": "#/$defs/Reviewability"
+    },
+    "run_id": {
+      "title": "Run Id",
+      "type": "string"
+    },
+    "security_reliability": {
+      "$ref": "#/$defs/SecurityReliability"
+    },
+    "task_id": {
+      "title": "Task Id",
+      "type": "string"
+    },
+    "test_adequacy": {
+      "$ref": "#/$defs/TestAdequacy"
+    }
+  },
+  "required": [
+    "run_id",
+    "task_id"
+  ],
+  "title": "PatchQualityCard",
+  "type": "object"
+}

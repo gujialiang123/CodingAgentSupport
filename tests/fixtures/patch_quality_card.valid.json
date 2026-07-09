@@ -1,0 +1,43 @@
+{
+  "run_id": "11111111-2222-3333-4444-555555555555",
+  "task_id": "swebench__django__12345",
+  "resolved": true,
+  "quality_level": "Q3_engineering_acceptable",
+  "functional_correctness": {
+    "patch_applies": true,
+    "build_success": true,
+    "official_resolved": true,
+    "regression_failures": 0
+  },
+  "locality": {
+    "files_touched": 2,
+    "loc_added": 34,
+    "loc_deleted": 12,
+    "gold_file_overlap": 0.5,
+    "unrelated_file_change_suspected": false
+  },
+  "maintainability": {
+    "complexity_delta": 1,
+    "duplication_delta": 0,
+    "lint_new_warnings": 0,
+    "type_new_warnings": 0
+  },
+  "security_reliability": {
+    "new_security_warnings": 0,
+    "error_handling_concern": false,
+    "resource_cleanup_concern": false
+  },
+  "test_adequacy": {
+    "tests_added": 1,
+    "repro_test_fail_before": true,
+    "repro_test_pass_after": true,
+    "changed_line_coverage_delta": 0.12
+  },
+  "reviewability": {
+    "has_validation_report": true,
+    "description_diff_consistent": true,
+    "human_rating": null
+  },
+  "failure_modes": [],
+  "notes": ""
+}

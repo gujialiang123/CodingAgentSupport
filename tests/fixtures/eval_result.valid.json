@@ -1,0 +1,13 @@
+{
+  "run_id": "11111111-2222-3333-4444-555555555555",
+  "patch_applies": true,
+  "build_success": true,
+  "fail_to_pass_passed": 4,
+  "fail_to_pass_total": 4,
+  "pass_to_pass_passed": 122,
+  "pass_to_pass_total": 122,
+  "resolved": true,
+  "full_tests_status": "pass",
+  "gate_results_path": "runs/pilot_C6/11111111/gate_results.json",
+  "eval_log_path": "runs/pilot_C6/11111111/eval.log"
+}

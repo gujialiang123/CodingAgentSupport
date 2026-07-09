@@ -1,0 +1,119 @@
+{
+  "$defs": {
+    "RunStatus": {
+      "enum": [
+        "completed",
+        "failed",
+        "timeout",
+        "error"
+      ],
+      "title": "RunStatus",
+      "type": "string"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "commands_path": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "JSONL of every executed command.",
+      "title": "Commands Path"
+    },
+    "duration_sec": {
+      "anyOf": [
+        {
+          "type": "number"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Duration Sec"
+    },
+    "error": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Error"
+    },
+    "final_message_path": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "Agent's final summary message.",
+      "title": "Final Message Path"
+    },
+    "patch_path": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "Final unified diff produced by the agent.",
+      "title": "Patch Path"
+    },
+    "run_id": {
+      "title": "Run Id",
+      "type": "string"
+    },
+    "status": {
+      "$ref": "#/$defs/RunStatus",
+      "default": "completed"
+    },
+    "support_artifacts_dir": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "Injected support artifacts.",
+      "title": "Support Artifacts Dir"
+    },
+    "transcript_path": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "JSONL of every agent step.",
+      "title": "Transcript Path"
+    }
+  },
+  "required": [
+    "run_id"
+  ],
+  "title": "AgentRunResult",
+  "type": "object"
+}
