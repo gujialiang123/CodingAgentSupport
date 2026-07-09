@@ -26,31 +26,39 @@ conditions.
 
 ## Status
 
-Milestones **T0 + T1** (data contracts) and **T3 + T6** (workspace + mock
-pipeline) are implemented:
+Implemented so far:
 
-- Typed data contracts (`se_support.schemas`) + JSON-schema export.
-- Run-directory + JSONL logging conventions (`se_support.runner.run_dir`)
-  designed so new metrics can be recomputed from raw logs **without re-running
-  experiments**.
-- Git-backed `Workspace`, deterministic `MockAgent`, offline evaluator, and a
-  `PatchQualityCard` v0 builder wired into an end-to-end `run` command.
-- Minimal CLI (`python -m se_support`).
-- Unit + end-to-end tests with a fixture repo; `pytest` and `ruff` green.
+- **T0/T1** — typed data contracts (`se_support.schemas`) + JSON-schema export.
+- **T3/T6** — git-backed `Workspace`, `MockAgent`, offline evaluator, quality
+  card v0, wired into an end-to-end `run` command.
+- **T4 (v1)** — `SupportCondition` system (C0–C6) toggling
+  context/tests/gates/harness/memory via prompt injection + loop hooks.
+- **Controllable `LLMAgent`** — a model-agnostic bash-loop agent that runs
+  against any OpenAI-compatible endpoint (local vLLM now, pinned API later),
+  validated end-to-end on a local RTX 4090 with Qwen2.5-Coder-7B.
+- Run-directory + JSONL logging so metrics can be recomputed from raw logs
+  **without re-running experiments**.
+- Unit + end-to-end tests (offline, no GPU); `pytest` and `ruff` green.
 
-Dataset importers (T2), gates (T5), support layers C1–C6 (T4) and real agent
-adapters (mini-SWE-agent, Agentless) are stubbed for later tickets.
+SWE-bench importer (T2), richer gates/context/tests generators, and a
+mini-SWE-agent adapter are the next steps.
 
-## Run the mock pipeline (no model needed)
+## Run the pipeline
 
 ```bash
-# gold patch resolves the fixture task; empty/broken do not
+# Mock (no model needed): gold resolves, empty/broken do not
 python -m se_support run --task tests/fixtures/task_mini_repo.json \
-  --mock-mode gold --condition C6_full_stack --experiment-id smoke
-# -> resolved=True ... quality=Q3_engineering_acceptable
+  --mock-mode gold --condition C6_full_stack
+
+# Real LLM against a local vLLM server (env: vllm)
+#   CUDA_VISIBLE_DEVICES=0 python -m vllm.entrypoints.openai.api_server \
+#     --model Qwen/Qwen2.5-Coder-7B-Instruct --max-model-len 8192 --port 8000
+python -m se_support run --task tests/fixtures/task_mini_repo.json \
+  --agent llm --model Qwen/Qwen2.5-Coder-7B-Instruct \
+  --base-url http://localhost:8000/v1 --condition C6_full_stack --max-turns 15
 ```
 
-See [`docs/experiments/001_smoke_mock_pipeline.md`](docs/experiments/001_smoke_mock_pipeline.md).
+See [`docs/experiments/`](docs/experiments/) for logged runs (001 mock, 002 real 4090).
 
 ## Quick start
 

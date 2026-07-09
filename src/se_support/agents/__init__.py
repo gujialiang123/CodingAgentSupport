@@ -6,6 +6,19 @@ agent (deterministic, no LLM) validates the whole pipeline; real adapters
 """
 
 from se_support.agents.base import AgentRunner
+from se_support.agents.chat_client import (
+    ChatClient,
+    OpenAIChatClient,
+    ScriptedChatClient,
+)
+from se_support.agents.llm_agent import LLMAgent
 from se_support.agents.mock_agent import MockAgent
 
-__all__ = ["AgentRunner", "MockAgent"]
+__all__ = [
+    "AgentRunner",
+    "MockAgent",
+    "LLMAgent",
+    "ChatClient",
+    "OpenAIChatClient",
+    "ScriptedChatClient",
+]

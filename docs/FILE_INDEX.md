@@ -51,6 +51,18 @@ responsibility lives. Update this when adding or removing files.
 |---|---|
 | `base.py` | `AgentRunner` protocol (swappable scaffolds, proposal §7.1). |
 | `mock_agent.py` | `MockAgent`: deterministic, no-LLM agent (gold/empty/broken/patch) for pipeline validation. |
+| `chat_client.py` | `ChatClient` protocol; `OpenAIChatClient` (vLLM/API) + `ScriptedChatClient` (offline tests). |
+| `llm_agent.py` | `LLMAgent`: controllable bash-loop agent; model-agnostic; condition-aware (gates hook). |
+
+### `src/se_support/support/` — support conditions (T4)
+
+| Path | Purpose |
+|---|---|
+| `condition.py` | `SupportCondition` + `CONDITIONS` (C0–C6) toggling context/tests/gates/harness/memory. |
+| `prompts.py` | `build_system_prompt`: base prompt + condition-driven additions (context/memory/harness). |
+| `context_pack.py` | C1 context generator (repo file map + test hints), lexical/leak-free. |
+| `memory.py` | C5 repo-memory generator (AGENTS.md-style, from repo contents). |
+| `gates.py` | C3 deterministic gates (compileall blocking; ruff/bandit advisory). |
 
 ### `src/se_support/evaluation/` — correctness scoring
 
@@ -77,6 +89,7 @@ in diffs.
 | `test_schemas.py` | Every model: valid-fixture round-trip, invalid raises, schema export. |
 | `test_run_dir.py` | Run-directory creation + JSONL round-trip. |
 | `test_pipeline.py` | End-to-end mock-agent pipeline on the fixture repo (gold resolves, empty/broken do not). |
+| `test_llm_agent.py` | Controllable LLM agent + conditions via ScriptedChatClient (offline, no GPU). |
 | `fixtures/*.valid.json` | One valid example per model (also mirrors proposal §9). |
 | `fixtures/mini_repo/` | Tiny buggy repo (calc + tests) used as an offline task. |
 | `fixtures/mini_repo_gold.patch` | Gold patch that fixes the mini-repo bug. |

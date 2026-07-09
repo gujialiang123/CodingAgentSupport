@@ -19,6 +19,9 @@ dev = [
     "pytest>=8.0",
     "ruff>=0.5",
 ]
+llm = [
+    "openai>=1.0",
+]
 
 [project.scripts]
 se-support = "se_support.cli:main"

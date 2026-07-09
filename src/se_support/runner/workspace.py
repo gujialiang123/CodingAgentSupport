@@ -89,8 +89,12 @@ class Workspace:
         return proc.returncode == 0
 
     def final_diff(self) -> str:
-        # Diff working tree (staged + unstaged) against the base commit.
-        self._git("add", "-A")
+        # Diff working tree against base, excluding Python caches that agent/gate
+        # commands create (they would otherwise pollute the patch and break apply).
+        self._git(
+            "add", "-A", "--", ".",
+            ":(exclude)**/__pycache__/**", ":(exclude)**/*.pyc",
+        )
         proc = self._git("diff", "--cached", "HEAD")
         return proc.stdout
 

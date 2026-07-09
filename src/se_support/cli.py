@@ -53,7 +53,7 @@ def _cmd_stub(args: argparse.Namespace) -> int:
 def _cmd_run(args: argparse.Namespace) -> int:
     import json
 
-    from se_support.agents import MockAgent
+    from se_support.agents import LLMAgent, MockAgent, OpenAIChatClient
     from se_support.runner.run_manager import run_single
     from se_support.schemas import TaskSpec
 
@@ -61,6 +61,12 @@ def _cmd_run(args: argparse.Namespace) -> int:
     if args.agent == "mock":
         agent = MockAgent(mode=args.mock_mode)
         model = f"mock[{args.mock_mode}]"
+    elif args.agent == "llm":
+        client = OpenAIChatClient(
+            model=args.model, base_url=args.base_url, api_key=args.api_key
+        )
+        agent = LLMAgent(client, max_turns=args.max_turns)
+        model = args.model
     else:
         print(f"agent '{args.agent}': {_NOT_IMPLEMENTED}", file=sys.stderr)
         return 2
@@ -103,11 +109,17 @@ def build_parser() -> argparse.ArgumentParser:
     p_schemas.set_defaults(func=_cmd_schemas)
 
     # run (mock pipeline implemented; real agents later)
-    p_run = sub.add_parser("run", help="Run one task end-to-end (mock agent implemented).")
+    p_run = sub.add_parser("run", help="Run one task end-to-end (mock + llm agents).")
     p_run.add_argument("--task", required=True, help="Path to a TaskSpec JSON file.")
-    p_run.add_argument("--agent", default="mock", help="Agent scaffold (mock | ...).")
+    p_run.add_argument("--agent", default="mock", help="Agent scaffold (mock | llm).")
     p_run.add_argument("--mock-mode", default="gold", choices=["gold", "empty", "broken"],
                        help="Mock agent behaviour.")
+    p_run.add_argument("--model", default="Qwen/Qwen2.5-Coder-7B-Instruct",
+                       help="Model id for --agent llm.")
+    p_run.add_argument("--base-url", default="http://localhost:8000/v1",
+                       help="OpenAI-compatible endpoint (e.g. local vLLM server).")
+    p_run.add_argument("--api-key", default="EMPTY", help="API key for the endpoint.")
+    p_run.add_argument("--max-turns", type=int, default=20, help="Max agent turns (llm).")
     p_run.add_argument("--condition", default="C0_minimal", help="Support condition id.")
     p_run.add_argument("--experiment-id", default="adhoc", help="Experiment id (runs/<id>/).")
     p_run.add_argument("--seed", type=int, default=0)

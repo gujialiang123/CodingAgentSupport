@@ -19,3 +19,4 @@ machine artifacts under `runs/` and `results/`.
 | id | experiment_id | title | status |
 |---|---|---|---|
 | 001 | smoke | Mock pipeline smoke test | done |
+| 002 | real_smoke | Real 4090 smoke run (Qwen2.5-Coder-7B) | done |
