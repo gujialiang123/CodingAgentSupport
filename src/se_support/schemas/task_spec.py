@@ -31,6 +31,11 @@ class TaskSpec(SEModel):
     test_command: str | None = Field(None, description="Command that runs the target tests.")
     setup_command: str | None = Field(None, description="Environment setup command, if any.")
     docker_image: str | None = Field(None, description="Reproducible eval image tag, if any.")
+    local_repo_path: str | None = Field(
+        None,
+        description="Local directory to seed the workspace from (offline/fixture runs). "
+        "Real SWE-bench tasks use repo+base_commit instead.",
+    )
     gold_patch_path: str | None = Field(None, description="Path to the human reference patch.")
     fail_to_pass_tests: list[str] = Field(default_factory=list)
     pass_to_pass_tests: list[str] = Field(default_factory=list)

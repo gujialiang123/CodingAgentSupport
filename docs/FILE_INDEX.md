@@ -41,6 +41,28 @@ responsibility lives. Update this when adding or removing files.
 |---|---|
 | `__init__.py` | Subpackage docstring. |
 | `run_dir.py` | `RunDirectory` layout + `TranscriptEvent`/`CommandRecord` JSONL contracts. The basis for post-hoc metric recomputation. |
+| `workspace.py` | `Workspace`: git-backed per-run checkout; apply/reverse patches, final diff, run pytest node ids. |
+| `patch_utils.py` | Unified-diff parsing → `DiffMetrics` (files_touched, loc_added/deleted) + changed files. |
+| `run_manager.py` | `run_single`: orchestrates one (task, agent, condition) run end-to-end. |
+
+### `src/se_support/agents/` — agent scaffolds
+
+| Path | Purpose |
+|---|---|
+| `base.py` | `AgentRunner` protocol (swappable scaffolds, proposal §7.1). |
+| `mock_agent.py` | `MockAgent`: deterministic, no-LLM agent (gold/empty/broken/patch) for pipeline validation. |
+
+### `src/se_support/evaluation/` — correctness scoring
+
+| Path | Purpose |
+|---|---|
+| `local_eval.py` | `evaluate_patch`: offline evaluator (apply patch, compileall, run F2P/P2P) → `EvalResult`. |
+
+### `src/se_support/quality/` — patch quality cards
+
+| Path | Purpose |
+|---|---|
+| `quality_card.py` | `build_card`: offline, re-runnable `PatchQualityCard` v0 (functional correctness + locality + gold overlap). |
 
 ## `schemas/` — generated
 
@@ -54,7 +76,11 @@ in diffs.
 |---|---|
 | `test_schemas.py` | Every model: valid-fixture round-trip, invalid raises, schema export. |
 | `test_run_dir.py` | Run-directory creation + JSONL round-trip. |
+| `test_pipeline.py` | End-to-end mock-agent pipeline on the fixture repo (gold resolves, empty/broken do not). |
 | `fixtures/*.valid.json` | One valid example per model (also mirrors proposal §9). |
+| `fixtures/mini_repo/` | Tiny buggy repo (calc + tests) used as an offline task. |
+| `fixtures/mini_repo_gold.patch` | Gold patch that fixes the mini-repo bug. |
+| `fixtures/task_mini_repo.json` | TaskSpec pointing at the mini-repo fixture. |
 
 ## `docs/`
 

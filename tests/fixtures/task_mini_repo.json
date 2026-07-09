@@ -1,0 +1,21 @@
+{
+  "task_id": "fixture__mini_repo__subtract_bug",
+  "dataset": "fixture",
+  "repo": "local/mini_repo",
+  "base_commit": "0000000000000000000000000000000000000000",
+  "issue_title": "subtract() returns wrong result",
+  "issue_body": "calc.subtract(5, 3) returns 8 instead of 2. The subtract function adds instead of subtracting.",
+  "test_command": "python -m pytest",
+  "setup_command": null,
+  "docker_image": null,
+  "local_repo_path": "tests/fixtures/mini_repo",
+  "gold_patch_path": "tests/fixtures/mini_repo_gold.patch",
+  "fail_to_pass_tests": ["test_calc.py::test_subtract"],
+  "pass_to_pass_tests": ["test_calc.py::test_add"],
+  "metadata": {
+    "language": "python",
+    "gold_files_touched": 1,
+    "gold_loc_changed": 2,
+    "repo_group": "fixture"
+  }
+}

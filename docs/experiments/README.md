@@ -18,4 +18,4 @@ machine artifacts under `runs/` and `results/`.
 
 | id | experiment_id | title | status |
 |---|---|---|---|
-| _(none yet)_ | | | |
+| 001 | smoke | Mock pipeline smoke test | done |

@@ -26,17 +26,31 @@ conditions.
 
 ## Status
 
-Milestone **T0 + T1** (see proposal §14) is implemented:
+Milestones **T0 + T1** (data contracts) and **T3 + T6** (workspace + mock
+pipeline) are implemented:
 
 - Typed data contracts (`se_support.schemas`) + JSON-schema export.
 - Run-directory + JSONL logging conventions (`se_support.runner.run_dir`)
   designed so new metrics can be recomputed from raw logs **without re-running
   experiments**.
+- Git-backed `Workspace`, deterministic `MockAgent`, offline evaluator, and a
+  `PatchQualityCard` v0 builder wired into an end-to-end `run` command.
 - Minimal CLI (`python -m se_support`).
-- Unit tests + fixtures; `pytest` and `ruff` green.
+- Unit + end-to-end tests with a fixture repo; `pytest` and `ruff` green.
 
-Dataset importers, agent adapters, gates, and metric computation are stubbed
-for later tickets.
+Dataset importers (T2), gates (T5), support layers C1–C6 (T4) and real agent
+adapters (mini-SWE-agent, Agentless) are stubbed for later tickets.
+
+## Run the mock pipeline (no model needed)
+
+```bash
+# gold patch resolves the fixture task; empty/broken do not
+python -m se_support run --task tests/fixtures/task_mini_repo.json \
+  --mock-mode gold --condition C6_full_stack --experiment-id smoke
+# -> resolved=True ... quality=Q3_engineering_acceptable
+```
+
+See [`docs/experiments/001_smoke_mock_pipeline.md`](docs/experiments/001_smoke_mock_pipeline.md).
 
 ## Quick start
 

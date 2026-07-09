@@ -104,6 +104,19 @@
       "title": "Issue Title",
       "type": "string"
     },
+    "local_repo_path": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "Local directory to seed the workspace from (offline/fixture runs). Real SWE-bench tasks use repo+base_commit instead.",
+      "title": "Local Repo Path"
+    },
     "metadata": {
       "$ref": "#/$defs/TaskMetadata"
     },
