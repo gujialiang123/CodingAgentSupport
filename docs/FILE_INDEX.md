@@ -76,6 +76,7 @@ responsibility lives. Update this when adding or removing files.
 | Path | Purpose |
 |---|---|
 | `local_eval.py` | `evaluate_patch`: offline evaluator (apply patch, compileall, run F2P/P2P) → `EvalResult`. |
+| `swebench_eval.py` | `evaluate_with_docker`: official SWE-bench Docker harness wrapper (authoritative F2P/P2P) → `EvalResult`. |
 
 ### `src/se_support/quality/` — patch quality cards
 
@@ -98,6 +99,7 @@ in diffs.
 | `test_pipeline.py` | End-to-end mock-agent pipeline on the fixture repo (gold resolves, empty/broken do not). |
 | `test_llm_agent.py` | Controllable LLM agent + conditions via ScriptedChatClient (offline, no GPU). |
 | `test_importer.py` | SWE-bench importer + sampler on a SWE-bench-shaped fixture (offline, no download). |
+| `test_swebench_eval.py` | SWE-bench Docker evaluator's pure helpers (report parsing, predictions) offline. |
 | `fixtures/swebench_sample.jsonl` | Two SWE-bench-shaped raw records for importer tests. |
 | `fixtures/*.valid.json` | One valid example per model (also mirrors proposal §9). |
 | `fixtures/mini_repo/` | Tiny buggy repo (calc + tests) used as an offline task. |

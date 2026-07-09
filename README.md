@@ -38,12 +38,25 @@ Implemented so far:
   validated end-to-end on a local RTX 4090 with Qwen2.5-Coder-7B.
 - **T2** — SWE-bench Verified importer (real dataset → TaskSpec JSONL) + task
   sampler; verified against the real 500-task dataset.
+- **Docker evaluation** — official SWE-bench harness wrapper
+  (`evaluate_with_docker`), validated on a real task (gold patch → resolved).
 - Run-directory + JSONL logging so metrics can be recomputed from raw logs
   **without re-running experiments**.
 - Unit + end-to-end tests (offline, no GPU); `pytest` and `ruff` green.
 
-Docker-based official evaluation for real SWE-bench tasks and a mini-SWE-agent
-adapter are the next steps.
+Next: wire the Docker evaluator into `run_single` for real tasks and run a
+pilot (C0 vs C6) on a sampled SWE-bench subset.
+
+## Environments (conda)
+
+| Env | Purpose |
+|---|---|
+| `se-support` | the package, tests, agents, importer, quality metrics |
+| `vllm` | local model serving for smoke tests (RTX 4090) |
+| `swebench` | official SWE-bench Docker evaluation harness |
+
+Docker on this host is **rootless**: export
+`DOCKER_HOST=unix:///run/user/$(id -u)/docker.sock` before evaluating.
 
 ## Import real tasks
 
