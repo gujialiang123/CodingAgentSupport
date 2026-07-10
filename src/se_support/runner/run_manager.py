@@ -19,7 +19,7 @@ from dataclasses import dataclass
 from pathlib import Path
 
 from se_support.agents.base import AgentRunner
-from se_support.evaluation import evaluate_patch
+from se_support.evaluation import evaluate_patch, evaluate_with_docker
 from se_support.quality import build_card
 from se_support.runner.run_dir import (
     FILE_EVAL,
@@ -61,7 +61,17 @@ def run_single(
     model: str = "mock",
     seed: int = 0,
     run_id: str | None = None,
+    evaluator: str = "auto",
+    docker_python_exe: str | None = None,
+    docker_env: dict | None = None,
+    dataset_name: str = "SWE-bench/SWE-bench_Verified",
 ) -> RunOutcome:
+    """Execute one run end-to-end.
+
+    Workspace + evaluator are chosen by ``evaluator`` (``auto`` picks by task):
+    * fixture tasks (``local_repo_path`` set) -> copy template + local evaluator.
+    * real tasks (``repo`` + ``base_commit``) -> git clone + official Docker eval.
+    """
     run_id = run_id or uuid.uuid4().hex[:12]
     rd = RunDirectory.create(runs_root, experiment_id, run_id)
 
@@ -72,16 +82,29 @@ def run_single(
     rd.write_model(FILE_TASK, task)
     rd.write_model(FILE_RUN_SPEC, run_spec)
 
-    # Agent operates in its own workspace under the run directory.
-    agent_ws = Workspace.from_template(
-        _template(task), rd.path / "agent_workspace", rd
-    )
+    mode = _resolve_mode(task, evaluator)
+
+    # Build the agent workspace from the base state.
+    if mode == "fixture":
+        agent_ws = Workspace.from_template(_template(task), rd.path / "agent_workspace", rd)
+    else:
+        agent_ws = Workspace.from_git(
+            task.repo, task.base_commit, rd.path / "agent_workspace", rd
+        )
+
     agent.run(task, condition, agent_ws, rd)
     final_diff = agent_ws.final_diff()
     rd.write_text(FILE_FINAL_PATCH, final_diff)
 
-    # Evaluate on a fresh clean checkout.
-    eval_result = evaluate_patch(task, final_diff, rd.path / "eval_workspace", rd)
+    # Evaluate.
+    if mode == "fixture":
+        eval_result = evaluate_patch(task, final_diff, rd.path / "eval_workspace", rd)
+    else:
+        eval_result = evaluate_with_docker(
+            task, final_diff, rd.path / "docker_eval", run_id=run_id,
+            dataset_name=dataset_name, python_exe=docker_python_exe, env=docker_env,
+        )
+    eval_result.run_id = run_id
     rd.write_model(FILE_EVAL, eval_result)
 
     # Quality card (offline, from artifacts).
@@ -89,6 +112,15 @@ def run_single(
     rd.write_model(FILE_QUALITY, card)
 
     return RunOutcome(run_id=run_id, run_dir=rd.path, eval_result=eval_result, quality_card=card)
+
+
+def _resolve_mode(task: TaskSpec, evaluator: str) -> str:
+    if evaluator == "local":
+        return "fixture"
+    if evaluator == "docker":
+        return "real"
+    # auto
+    return "fixture" if task.local_repo_path else "real"
 
 
 def _template(task: TaskSpec) -> Path:

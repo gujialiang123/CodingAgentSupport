@@ -114,7 +114,7 @@ def evaluate_with_docker(
     ``python_exe`` should point at the interpreter of the ``swebench`` conda env
     when calling from another env. ``env`` may set ``DOCKER_HOST``.
     """
-    work_dir = Path(work_dir)
+    work_dir = Path(work_dir).resolve()
     work_dir.mkdir(parents=True, exist_ok=True)
     preds = work_dir / "predictions.jsonl"
     instance_id = write_predictions(task, patch_text, preds)
