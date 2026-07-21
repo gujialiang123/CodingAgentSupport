@@ -229,7 +229,13 @@ class LLMAgent:
             return None
         t = harness.request_transition(m.group(1))
         if not t.ok:
-            return f"[HARNESS] Transition {t.frm}->{t.to} rejected: {t.reason}"
+            missing = t.reason
+            hint = ""
+            if "missing required" in missing:
+                need = missing.split("missing required ")[1].split(" record")[0]
+                hint = (f" Output a line `{need.upper()}: <...>` and then "
+                        f"NEXT_STATE: {t.to}.")
+            return f"[HARNESS] Transition {t.frm}->{t.to} rejected: {t.reason}.{hint}"
         return f"[HARNESS] Now in {harness.state.value}."
 
     @staticmethod

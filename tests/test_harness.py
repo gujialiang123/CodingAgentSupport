@@ -40,9 +40,19 @@ def test_transition_requires_record():
 def test_cannot_skip_states():
     sm = HarnessStateMachine()
     sm.record("localization", "x")
-    t = sm.request_transition("PATCH")  # skipping DIAGNOSE
-    assert not t.ok
-    assert sm.state == HarnessState.DISCOVER
+    t = sm.request_transition("PATCH")  # skipping DIAGNOSE (no diagnosis record)
+    assert not t.ok and "diagnosis" in t.reason
+    assert sm.state == HarnessState.DISCOVER  # atomic: no partial advance
+
+
+def test_forward_multi_step_when_records_present():
+    sm = HarnessStateMachine()
+    sm.record("localization", "x")
+    sm.record("diagnosis", "y")
+    # One directive can advance multiple states if all intermediate records exist.
+    t = sm.request_transition("PATCH")
+    assert t.ok
+    assert sm.state == HarnessState.PATCH
 
 
 def test_submit_requires_full_workflow():

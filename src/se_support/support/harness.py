@@ -94,7 +94,14 @@ class HarnessStateMachine:
         return ORDER[i + 1] if i + 1 < len(ORDER) else None
 
     def request_transition(self, target: HarnessState | str) -> Transition:
-        """Attempt to advance to ``target`` (only the immediate next state)."""
+        """Advance toward ``target`` (any later state).
+
+        Auto-walks through intermediate states as long as each state's
+        leave-requirement record exists. This keeps enforcement (cannot reach
+        PATCH without localization+diagnosis; cannot reach SUBMIT without a
+        validation record) while not trapping a model that requests a forward
+        jump in one message.
+        """
         if isinstance(target, str):
             try:
                 target = HarnessState(target.upper())
@@ -103,21 +110,26 @@ class HarnessStateMachine:
                 self.transitions.append(t)
                 return t
 
-        nxt = self._next_state()
-        if target != nxt:
-            t = Transition(self.state.value, target.value, False,
-                           f"can only advance to {nxt.value if nxt else 'None'}")
+        cur_i = ORDER.index(self.state)
+        tgt_i = ORDER.index(target)
+        if tgt_i <= cur_i:
+            t = Transition(self.state.value, target.value, False, "not a forward transition")
             self.transitions.append(t)
             return t
 
-        required = _REQUIRED_RECORD_TO_LEAVE.get(self.state)
-        if required and not self.has_record(required):
-            t = Transition(self.state.value, target.value, False,
-                           f"missing required {required} record")
-            self.transitions.append(t)
-            return t
+        # Atomic: only advance if every intermediate state's leave-requirement is
+        # already satisfied; otherwise stay put and report what's missing.
+        for i in range(cur_i, tgt_i):
+            required = _REQUIRED_RECORD_TO_LEAVE.get(ORDER[i])
+            if required and not self.has_record(required):
+                t = Transition(self.state.value, target.value, False,
+                               f"missing required {required} record")
+                self.transitions.append(t)
+                return t
 
-        t = Transition(self.state.value, target.value, True)
+        start = self.state
+        self.state = target
+        t = Transition(start.value, target.value, True)
         self.transitions.append(t)
         self.state = target
         return t
