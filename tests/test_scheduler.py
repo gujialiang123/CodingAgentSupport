@@ -51,3 +51,18 @@ def test_run_experiment_and_resume(tmp_path):
     )
     assert rows2[0].get("skipped") is True
     assert rows2[0]["resolved"] is True
+
+
+def test_run_experiment_concurrent(tmp_path):
+    t = _task()
+
+    def agent_factory():
+        return LLMAgent(ScriptedChatClient([FIX_CALC, "SUBMIT"]), max_turns=4)
+
+    rows = run_experiment(
+        "exp_conc", [t], ["C0_minimal", "C6_full_stack"], agent_factory,
+        runs_root=tmp_path, model="scripted", sandbox_policy=None, progress=False,
+        max_workers=2,
+    )
+    assert len(rows) == 2
+    assert all(r.get("error") is None for r in rows)

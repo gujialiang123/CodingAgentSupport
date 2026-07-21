@@ -38,6 +38,10 @@ def main() -> int:
     ap.add_argument("--output", default="runs")
     ap.add_argument("--results", default=None)
     ap.add_argument("--no-sandbox", action="store_true")
+    ap.add_argument("--max-tokens", type=int, default=1024,
+                    help="Completion token budget per turn (raise for reasoning models).")
+    ap.add_argument("--max-workers", type=int, default=1,
+                    help="Concurrent cells (safe for API models; each cell isolated).")
     ap.add_argument("--swebench-python", default="/home/jgu7/miniconda3/envs/swebench/bin/python")
     ap.add_argument("--dataset-name", default="SWE-bench/SWE-bench_Verified")
     args = ap.parse_args()
@@ -46,7 +50,8 @@ def main() -> int:
     docker_env = {"DOCKER_HOST": f"unix:///run/user/{os.getuid()}/docker.sock"}
 
     def make_client():
-        return OpenAIChatClient(model=args.model, base_url=args.base_url, api_key=args.api_key)
+        return OpenAIChatClient(model=args.model, base_url=args.base_url,
+                                api_key=args.api_key, max_tokens=args.max_tokens)
 
     def agent_factory():
         return LLMAgent(make_client(), max_turns=args.max_turns)
@@ -61,6 +66,7 @@ def main() -> int:
         docker_python_exe=args.swebench_python, docker_env=docker_env,
         dataset_name=args.dataset_name,
         results_path=Path(args.results) if args.results else None,
+        max_workers=args.max_workers,
     )
     return 0
 

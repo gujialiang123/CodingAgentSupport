@@ -70,32 +70,27 @@ def run_experiment(
     resume: bool = True,
     results_path: Path | None = None,
     progress: bool = True,
+    max_workers: int = 1,
 ) -> list[dict]:
     """Run the full schedule and return per-cell result rows.
 
     ``sandbox_policy="default"`` uses the strict confirmatory policy; pass an
     explicit :class:`SandboxPolicy` or ``None`` (no sandbox) to override.
     ``agent_factory`` must build a fresh agent per run (agents hold per-run state).
+    ``max_workers`` > 1 runs cells concurrently (safe: each cell has its own run
+    dir + run_id; use for API models where there is no local GPU bottleneck).
     """
     if sandbox_policy == "default":
         sandbox_policy = SandboxPolicy.confirmatory()
     seeds = seeds or [0]
     runs_root = Path(runs_root)
     schedule = build_schedule(tasks, conditions, seeds, rng_seed)
+    n = len(schedule)
 
-    rows: list[dict] = []
-    for i, cell in enumerate(schedule, 1):
+    def _execute(cell: Cell) -> dict:
         run_dir = runs_root / experiment_id / cell.run_id
         if resume and _is_complete(run_dir):
-            if progress:
-                print(f"[{i}/{len(schedule)}] skip (done) {cell.key}", flush=True)
-            rows.append(_row_from_dir(cell, run_dir, skipped=True))
-            continue
-
-        if progress:
-            print(f"[{i}/{len(schedule)}] run {cell.key}", flush=True)
-
-        row = None
+            return _row_from_dir(cell, run_dir, skipped=True)
         for attempt in range(max_infra_retries + 1):
             try:
                 agent = agent_factory()
@@ -108,21 +103,38 @@ def run_experiment(
                     docker_python_exe=docker_python_exe, docker_env=docker_env,
                     dataset_name=dataset_name,
                 )
-                row = _row_from_outcome(cell, outcome)
-                break
+                return _row_from_outcome(cell, outcome)
             except Exception as exc:  # noqa: BLE001 - infra retry / record
-                err = f"{exc!r}\n{traceback.format_exc()[-800:]}"
                 if attempt < max_infra_retries:
-                    if progress:
-                        print(f"    infra error, retry {attempt + 1}: {exc!r}", flush=True)
                     continue
-                row = {"key": cell.key, "task_id": cell.task.task_id,
-                       "condition": cell.condition, "seed": cell.seed,
-                       "resolved": None, "error": err}
-        rows.append(row)
-        if progress and row is not None:
-            print("    " + json.dumps({k: row.get(k) for k in
-                  ("resolved", "quality", "error")}), flush=True)
+                return {"key": cell.key, "task_id": cell.task.task_id,
+                        "condition": cell.condition, "seed": cell.seed,
+                        "resolved": None, "error": f"{exc!r}\n{traceback.format_exc()[-800:]}"}
+
+    rows: list[dict] = []
+    if max_workers <= 1:
+        for i, cell in enumerate(schedule, 1):
+            if progress:
+                print(f"[{i}/{n}] {cell.key}", flush=True)
+            row = _execute(cell)
+            rows.append(row)
+            if progress:
+                print("    " + json.dumps({k: row.get(k) for k in
+                      ("resolved", "quality", "error")}), flush=True)
+    else:
+        from concurrent.futures import ThreadPoolExecutor, as_completed
+
+        with ThreadPoolExecutor(max_workers=max_workers) as pool:
+            futures = {pool.submit(_execute, cell): cell for cell in schedule}
+            done = 0
+            for fut in as_completed(futures):
+                done += 1
+                row = fut.result()
+                rows.append(row)
+                if progress:
+                    print(f"[{done}/{n}] {row.get('key')} -> " + json.dumps(
+                        {k: row.get(k) for k in ("resolved", "quality", "error")}),
+                        flush=True)
 
     if results_path:
         results_path = Path(results_path)
