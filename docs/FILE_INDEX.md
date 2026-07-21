@@ -27,7 +27,13 @@ responsibility lives. Update this when adding or removing files.
 
 | Path | Purpose |
 |---|---|
-| `scheduler.py` | `run_experiment`/`build_schedule`: tasks×conditions×seeds, randomized, resumable, infra-retry, sandbox default-on. |
+| `scheduler.py` | `run_experiment`/`build_schedule`: tasks×conditions×seeds, randomized, resumable, infra-retry, sandbox default-on, `max_workers` concurrency. |
+
+### `src/se_support/analysis/` — analysis (EP-10)
+
+| Path | Purpose |
+|---|---|
+| `aggregate.py` | `analyze`/`format_report`: resolution-by-condition, paired McNemar (exact) vs C0, bootstrap CIs, quality tables; offline from run dirs. |
 
 ### `src/se_support/schemas/` — data contracts (T1)
 

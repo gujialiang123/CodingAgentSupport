@@ -17,7 +17,7 @@ the go/no-go checklists §15. Updated as packages land.
 | EP-07 | C3 gate policy v2 | ✅ done | Frozen `GatePolicy` (blocking/advisory), base-vs-patch delta (legacy warnings excluded), revision budget; official tests never a gate. |
 | EP-08 | Quality card v1 | ✅ done | Process/trajectory metrics; Q-levels capped at Q2 automatically; offline recompute from run dir. |
 | EP-09 | Experiment scheduler | ✅ done | `experiment/scheduler.py`: randomized, resumable (deterministic run_id + completion marker), infra-only retries, sandbox default-on. A1–A4 wired C2 generation, sandbox default, and per-run manipulation checks into `run_single`. Validated end-to-end in Experiment 005. |
-| EP-10 | Analysis/annotation package | ⬜ todo | Paired tables, McNemar/bootstrap, annotation sampler (needed for E4/analysis). |
+| EP-10 | Analysis/annotation package | 🟡 partial | `analysis/aggregate.py`: resolution-by-condition, paired McNemar (exact) vs C0, bootstrap CIs, quality tables + `scripts/analyze.py`. Annotation sampler/blind packets still TODO. |
 
 ## Go/no-go — Before E1 (§15)
 
