@@ -107,6 +107,15 @@ def run_single(
     if hasattr(agent, "support_bundle"):
         agent.support_bundle = bundle
 
+    # EP-07: compute advisory-gate baseline on the BASE tree (before any edits)
+    # so new warnings can be separated from pre-existing legacy warnings.
+    from se_support.support.condition import get_condition as _get_cond
+
+    if _get_cond(condition).gates and hasattr(agent, "gate_baseline"):
+        from se_support.support.gate_policy import compute_baseline
+
+        agent.gate_baseline = compute_baseline(agent_ws.path, getattr(agent, "gate_policy", None))
+
     # EP-01 provenance firewall: scrub history, write scrubbed task + manifest,
     # and run the agent's commands under the sandbox.
     if sandbox_policy is not None:

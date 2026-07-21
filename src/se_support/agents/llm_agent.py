@@ -31,10 +31,14 @@ from se_support.runner.run_dir import (
 from se_support.runner.workspace import Workspace
 from se_support.schemas import AgentRunResult, RunStatus, TaskSpec
 from se_support.support import (
-    blocking_failures,
     build_system_prompt,
     get_condition,
-    run_gates,
+)
+from se_support.support.gate_policy import (
+    GatePolicy,
+    blocking_failures,
+    format_feedback,
+    run_policy,
 )
 from se_support.support.harness import HarnessStateMachine
 
@@ -58,6 +62,9 @@ class LLMAgent:
         self.sandbox_policy = sandbox_policy
         # When set, the frozen support bundle the agent's prompt is built from (EP-02).
         self.support_bundle = None
+        # C3 gate policy + base-tree advisory baseline (EP-07).
+        self.gate_policy = GatePolicy()
+        self.gate_baseline: dict = {}
         self.name = f"llm_agent[{getattr(client, 'model', 'unknown')}]"
 
     def run(
@@ -75,6 +82,7 @@ class LLMAgent:
 
         # EP-04: enforced workflow state machine when C4 (harness) is active.
         harness = HarnessStateMachine() if cond.harness else None
+        gate_revisions = 0  # EP-07 revision budget counter
 
         status = RunStatus.completed
         error = None
@@ -137,12 +145,18 @@ class LLMAgent:
                         step += 1
                         continue
                     if cond.gates:
-                        results = run_gates(workspace.path)
-                        run_dir.write_json(FILE_GATE_RESULTS, results)
+                        results = run_policy(
+                            workspace.path, self.gate_baseline, self.gate_policy
+                        )
+                        run_dir.write_json(
+                            FILE_GATE_RESULTS, [r.to_dict() for r in results]
+                        )
                         failures = blocking_failures(results)
-                        if failures:
-                            fb = "Blocking gate(s) failed; fix before submitting:\n" + "\n".join(
-                                f"- {f['gate_name']}: {f['output_preview'][:500]}" for f in failures
+                        if failures and gate_revisions < self.gate_policy.revision_budget:
+                            gate_revisions += 1
+                            fb = format_feedback(failures) + (
+                                f"\n[gate revision {gate_revisions}/"
+                                f"{self.gate_policy.revision_budget}]"
                             )
                             messages.append({"role": "user", "content": fb})
                             run_dir.append_transcript(
@@ -150,6 +164,7 @@ class LLMAgent:
                             )
                             step += 1
                             continue
+                        # Budget exhausted or gates pass: proceed to submit.
                     submitted = True
                     break
                 else:

@@ -70,6 +70,8 @@ responsibility lives. Update this when adding or removing files.
 | `condition.py` | `SupportCondition` + `CONDITIONS` (C0–C6) toggling context/tests/gates/harness/memory. |
 | `bundle.py` | `SupportBundle`/`build_bundle` (EP-02): frozen, hashed, validated support artifacts generated before the agent runs; C0 empty, C6 = union of C1–C5, C2 tests marked `declared_unimplemented`. |
 | `harness.py` | `HarnessStateMachine` (EP-04): enforced C4 workflow DISCOVER→DIAGNOSE→PATCH→VALIDATE→SUBMIT; edit permission by state, required records, transition/rejection logging. |
+| `gate_policy.py` | Frozen C3 gate policy (EP-07): versioned blocking/advisory gates, base-vs-patch advisory delta (legacy warnings excluded), revision budget; official tests never a gate. |
+| `gates.py` | Low-level gate runners (compileall blocking; ruff/bandit advisory). |
 | `prompts.py` | `build_system_prompt`: base prompt + condition-driven additions, sourced from the frozen bundle when present. |
 | `context_pack.py` | C1 context generator (repo file map + test hints), lexical/leak-free. |
 | `memory.py` | C5 repo-memory generator (AGENTS.md-style, from repo contents). |
@@ -114,6 +116,7 @@ in diffs.
 | `test_isolation.py` | EP-01 red-team: provenance scrub, git-history flatten, bwrap fs/network confinement, manifest. |
 | `test_bundle.py` | EP-02 frozen SupportBundle: C0 empty, C6=union hashes, validation, determinism. |
 | `test_harness.py` | EP-04 enforced C4: state machine + agent edit-revert / submit-gating enforcement. |
+| `test_gate_policy.py` | EP-07 frozen C3 gate policy: blocking pass/fail, advisory base-vs-patch delta, no official tests as gates. |
 | `fixtures/swebench_sample.jsonl` | Two SWE-bench-shaped raw records for importer tests. |
 | `fixtures/*.valid.json` | One valid example per model (also mirrors proposal §9). |
 | `fixtures/mini_repo/` | Tiny buggy repo (calc + tests) used as an offline task. |

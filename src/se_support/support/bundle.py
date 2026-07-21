@@ -62,13 +62,9 @@ class SupportBundleManifest(SEModel):
 
 
 def _gate_policy_artifact() -> SupportArtifact:
-    policy = {
-        "blocking": ["compileall"],
-        "advisory": ["ruff", "bandit"],
-        "official_tests_are_gates": False,
-        "helper_test_in_gate_sequence": False,
-    }
-    content = json.dumps(policy, indent=2, sort_keys=True)
+    from se_support.support.gate_policy import GatePolicy
+
+    content = json.dumps(GatePolicy().to_dict(), indent=2, sort_keys=True)
     return SupportArtifact(
         layer="gates", filename="gate_policy.json", status=STATUS_PRESENT,
         hash=hash_text(content), content=content,
