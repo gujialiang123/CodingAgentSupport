@@ -4,6 +4,13 @@ This document records the **decisions** for how the SE-Support Study is run:
 datasets, agents, models, conditions, and metrics. It complements the proposal
 (which is the full rationale) by stating what we *actually do*.
 
+> **Execution-level protocol:** the detailed, staged execution plan (construct
+> hardening, information isolation, C2 boundary, cohorts, statistical plan, and
+> engineering work packages EP-00…EP-10) lives in
+> [`EXPERIMENT_PLAN_2026-07-21.md`](EXPERIMENT_PLAN_2026-07-21.md). That document
+> governs *how experiments are executed*; this file records the standing
+> decisions and conventions.
+
 ---
 
 ## 1. Core research question
