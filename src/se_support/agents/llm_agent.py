@@ -42,9 +42,11 @@ _MAX_OBS = 4000
 
 
 class LLMAgent:
-    def __init__(self, client: ChatClient, max_turns: int = 20) -> None:
+    def __init__(self, client: ChatClient, max_turns: int = 20, sandbox_policy=None) -> None:
         self.client = client
         self.max_turns = max_turns
+        # When set, agent bash commands run under this sandbox policy (EP-01).
+        self.sandbox_policy = sandbox_policy
         self.name = f"llm_agent[{getattr(client, 'model', 'unknown')}]"
 
     def run(
@@ -74,7 +76,12 @@ class LLMAgent:
 
                 bash = self._extract_bash(reply)
                 if bash is not None:
-                    proc = workspace._run("bash", "-lc", bash, step=step, check=False)
+                    if self.sandbox_policy is not None:
+                        proc, _backend = workspace.run_sandboxed(
+                            bash, self.sandbox_policy, step=step
+                        )
+                    else:
+                        proc = workspace._run("bash", "-lc", bash, step=step, check=False)
                     obs = (proc.stdout + proc.stderr)[:_MAX_OBS]
                     obs_msg = f"[exit={proc.returncode}]\n{obs}"
                     messages.append({"role": "user", "content": obs_msg})

@@ -111,6 +111,40 @@ class Workspace:
     def _git(self, *args: str, check: bool = True):
         return self._run("git", *args, check=check)
 
+    def scrub(self) -> None:
+        """Flatten git history so the agent cannot recover future commits (EP-01)."""
+        from se_support.isolation import scrub_git_history
+
+        scrub_git_history(self.path)
+
+    def run_sandboxed(self, bash_command: str, policy, step: int | None = None):
+        """Run an agent bash command under the sandbox policy (EP-01).
+
+        Unlike :meth:`_run` (used for orchestrator git ops), this wraps the
+        command with bubblewrap/unshare so the agent has no network and cannot
+        escape the workspace. Returns (proc, backend).
+        """
+        from se_support.isolation import build_sandbox_argv
+
+        argv, backend = build_sandbox_argv(["bash", "-lc", bash_command], self.path, policy)
+        t0 = time.time()
+        # When sandboxed with bwrap the cwd is /work; else run in self.path.
+        cwd = None if backend == "bwrap" else self.path
+        proc = subprocess.run(argv, cwd=cwd, capture_output=True, text=True)
+        dur = time.time() - t0
+        if self.run_dir is not None:
+            self.run_dir.append_command(
+                CommandRecord(
+                    step=step,
+                    command=bash_command,
+                    exit_code=proc.returncode,
+                    duration_sec=round(dur, 4),
+                    stdout_preview=proc.stdout[:2000],
+                    meta={"stderr_preview": proc.stderr[:2000], "sandbox": backend},
+                )
+            )
+        return proc, backend
+
     # -- patch operations -----------------------------------------------------
     def apply_patch(self, diff_text: str, check: bool = True) -> bool:
         if not diff_text.strip():

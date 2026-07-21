@@ -54,6 +54,15 @@ responsibility lives. Update this when adding or removing files.
 | `chat_client.py` | `ChatClient` protocol; `OpenAIChatClient` (vLLM/API) + `ScriptedChatClient` (offline tests). |
 | `llm_agent.py` | `LLMAgent`: controllable bash-loop agent; model-agnostic; condition-aware (gates hook). |
 
+### `src/se_support/isolation/` — provenance firewall & sandbox (EP-01)
+
+| Path | Purpose |
+|---|---|
+| `policy.py` | `SandboxPolicy` (network-off, fs-confined by default); `confirmatory()` vs `open()`. |
+| `sandbox.py` | `build_sandbox_argv`: wrap agent commands with bubblewrap (`--unshare-net`, fs-confined) or `unshare` fallback. |
+| `scrub.py` | `scrub_git_history` (flatten to base commit, drop remotes/reflogs/future objects); `scrubbed_task_dict` (drop gold/official-test fields). |
+| `manifest.py` | `VisibleInputManifest` + artifact hashing: record and hash every agent-visible input. |
+
 ### `src/se_support/support/` — support conditions (T4)
 
 | Path | Purpose |
@@ -100,6 +109,7 @@ in diffs.
 | `test_llm_agent.py` | Controllable LLM agent + conditions via ScriptedChatClient (offline, no GPU). |
 | `test_importer.py` | SWE-bench importer + sampler on a SWE-bench-shaped fixture (offline, no download). |
 | `test_swebench_eval.py` | SWE-bench Docker evaluator's pure helpers (report parsing, predictions) offline. |
+| `test_isolation.py` | EP-01 red-team: provenance scrub, git-history flatten, bwrap fs/network confinement, manifest. |
 | `fixtures/swebench_sample.jsonl` | Two SWE-bench-shaped raw records for importer tests. |
 | `fixtures/*.valid.json` | One valid example per model (also mirrors proposal §9). |
 | `fixtures/mini_repo/` | Tiny buggy repo (calc + tests) used as an offline task. |

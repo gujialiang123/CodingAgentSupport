@@ -65,12 +65,17 @@ def run_single(
     docker_python_exe: str | None = None,
     docker_env: dict | None = None,
     dataset_name: str = "SWE-bench/SWE-bench_Verified",
+    sandbox_policy=None,
 ) -> RunOutcome:
     """Execute one run end-to-end.
 
     Workspace + evaluator are chosen by ``evaluator`` (``auto`` picks by task):
     * fixture tasks (``local_repo_path`` set) -> copy template + local evaluator.
     * real tasks (``repo`` + ``base_commit``) -> git clone + official Docker eval.
+
+    When ``sandbox_policy`` is provided (EP-01) the workspace git history is
+    flattened, a scrubbed (gold-free) task record + hashed visible-input manifest
+    are written, and the agent's shell commands run under the sandbox.
     """
     run_id = run_id or uuid.uuid4().hex[:12]
     rd = RunDirectory.create(runs_root, experiment_id, run_id)
@@ -79,6 +84,7 @@ def run_single(
         run_id=run_id, task_id=task.task_id, agent=getattr(agent, "name", "agent"),
         model=model, condition=condition, seed=seed, experiment_id=experiment_id,
     )
+    # The full task record (with gold/official-test fields) is evaluator-only.
     rd.write_model(FILE_TASK, task)
     rd.write_model(FILE_RUN_SPEC, run_spec)
 
@@ -91,6 +97,11 @@ def run_single(
         agent_ws = Workspace.from_git(
             task.repo, task.base_commit, rd.path / "agent_workspace", rd
         )
+
+    # EP-01 provenance firewall: scrub history, write scrubbed task + manifest,
+    # and run the agent's commands under the sandbox.
+    if sandbox_policy is not None:
+        _apply_isolation(task, condition, run_id, agent, agent_ws, rd, sandbox_policy)
 
     agent.run(task, condition, agent_ws, rd)
     final_diff = agent_ws.final_diff()
@@ -112,6 +123,39 @@ def run_single(
     rd.write_model(FILE_QUALITY, card)
 
     return RunOutcome(run_id=run_id, run_dir=rd.path, eval_result=eval_result, quality_card=card)
+
+
+def _apply_isolation(task, condition, run_id, agent, agent_ws, rd, sandbox_policy) -> None:
+    import json
+
+    from se_support.isolation import (
+        VisibleInputManifest,
+        assert_no_forbidden_fields,
+        hash_text,
+        sandbox_available,
+        scrubbed_task_dict,
+    )
+
+    if sandbox_policy.enable_sandbox:
+        agent_ws.scrub()
+
+    scrubbed = scrubbed_task_dict(task)
+    assert_no_forbidden_fields(scrubbed)
+    scrubbed_blob = json.dumps(scrubbed, sort_keys=True)
+    rd.write_json("scrubbed_task.json", scrubbed)
+
+    backend = sandbox_available() if sandbox_policy.enable_sandbox else "none"
+    manifest = VisibleInputManifest(
+        run_id=run_id, condition=condition, base_commit=task.base_commit,
+        scrubbed_task_hash=hash_text(scrubbed_blob),
+        sandbox_backend=backend or "none",
+        network_allowed=sandbox_policy.allow_network,
+    )
+    rd.write_model("visible_input_manifest.json", manifest)
+
+    # Ensure the agent actually uses the sandbox policy.
+    if hasattr(agent, "sandbox_policy"):
+        agent.sandbox_policy = sandbox_policy
 
 
 def _resolve_mode(task: TaskSpec, evaluator: str) -> str:
