@@ -66,6 +66,7 @@ def run_single(
     docker_env: dict | None = None,
     dataset_name: str = "SWE-bench/SWE-bench_Verified",
     sandbox_policy=None,
+    generator_client=None,
 ) -> RunOutcome:
     """Execute one run end-to-end.
 
@@ -76,6 +77,9 @@ def run_single(
     When ``sandbox_policy`` is provided (EP-01) the workspace git history is
     flattened, a scrubbed (gold-free) task record + hashed visible-input manifest
     are written, and the agent's shell commands run under the sandbox.
+
+    When ``generator_client`` is provided and the condition includes tests
+    (C2/C6), a C2 helper is generated in a pre-run generator zone (A1/EP-03).
     """
     run_id = run_id or uuid.uuid4().hex[:12]
     rd = RunDirectory.create(runs_root, experiment_id, run_id)
@@ -98,20 +102,35 @@ def run_single(
             task.repo, task.base_commit, rd.path / "agent_workspace", rd
         )
 
+    from se_support.support.condition import get_condition as _get_cond
+
+    cond = _get_cond(condition)
+
+    # A1/EP-03: generate the C2 helper (pre-run generator zone) for C2/C6.
+    helper_artifact = None
+    if cond.tests and generator_client is not None:
+        try:
+            from se_support.support.repro_tests.pregen import generate_helper_for_task
+
+            helper_artifact = generate_helper_for_task(
+                task, generator_client, rd.path / "gen_zone", generator_model=model
+            )
+            rd.write_json("support/helper_artifact.json", helper_artifact.model_dump())
+        except Exception as exc:  # noqa: BLE001 - record, do not crash the run
+            rd.write_json("support/helper_artifact_error.json", {"error": repr(exc)})
+
     # EP-02: generate the frozen support bundle before the agent starts, write it
     # to support/, and give it to the agent as its single source of support text.
     from se_support.support import build_bundle
 
-    bundle = build_bundle(task, condition, agent_ws.path)
+    bundle = build_bundle(task, condition, agent_ws.path, helper_artifact=helper_artifact)
     bundle.write(rd.path / "support")
     if hasattr(agent, "support_bundle"):
         agent.support_bundle = bundle
 
     # EP-07: compute advisory-gate baseline on the BASE tree (before any edits)
     # so new warnings can be separated from pre-existing legacy warnings.
-    from se_support.support.condition import get_condition as _get_cond
-
-    if _get_cond(condition).gates and hasattr(agent, "gate_baseline"):
+    if cond.gates and hasattr(agent, "gate_baseline"):
         from se_support.support.gate_policy import compute_baseline
 
         agent.gate_baseline = compute_baseline(agent_ws.path, getattr(agent, "gate_policy", None))
@@ -120,6 +139,11 @@ def run_single(
     # and run the agent's commands under the sandbox.
     if sandbox_policy is not None:
         _apply_isolation(task, condition, run_id, agent, agent_ws, rd, sandbox_policy)
+
+    # A4/E0: manipulation check -- record whether the treatment was actually applied.
+    _write_manipulation_check(
+        run_id, condition, cond, bundle, sandbox_policy, rd
+    )
 
     agent.run(task, condition, agent_ws, rd)
     final_diff = agent_ws.final_diff()
@@ -174,6 +198,37 @@ def _apply_isolation(task, condition, run_id, agent, agent_ws, rd, sandbox_polic
     # Ensure the agent actually uses the sandbox policy.
     if hasattr(agent, "sandbox_policy"):
         agent.sandbox_policy = sandbox_policy
+
+
+def _write_manipulation_check(run_id, condition, cond, bundle, sandbox_policy, rd) -> None:
+    """A4/E0: record whether the condition applied exactly its intended treatment."""
+    from se_support.schemas import ManipulationCheck
+
+    def _present(layer: str) -> bool:
+        art = bundle.artifact(layer)
+        return art is not None and art.status == "present"
+
+    # Expected-vs-actual: every enabled layer must be present (tests may be
+    # declared_unimplemented -> present=False, which is honestly recorded).
+    expected = {
+        "context": cond.context, "tests": cond.tests, "gates": cond.gates,
+        "harness": cond.harness, "memory": cond.memory,
+    }
+    actual = {layer: _present(layer) for layer in expected}
+    # Passed = non-tests layers match expectation (tests may lack a valid helper).
+    passed = all(actual[layer] == expected[layer] for layer in expected if layer != "tests")
+
+    mc = ManipulationCheck(
+        run_id=run_id, condition=condition,
+        context_present=actual["context"], tests_present=actual["tests"],
+        gates_present=actual["gates"], harness_present=actual["harness"],
+        memory_present=actual["memory"],
+        no_gold_in_visible_inputs=True if sandbox_policy is not None else None,
+        network_disabled=(not sandbox_policy.allow_network) if sandbox_policy else None,
+        support_manifest_hash=bundle.bundle_hash,
+        passed=passed,
+    )
+    rd.write_model("manipulation.json", mc)
 
 
 def _resolve_mode(task: TaskSpec, evaluator: str) -> str:
