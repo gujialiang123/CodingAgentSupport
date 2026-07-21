@@ -111,6 +111,16 @@ class Workspace:
     def _git(self, *args: str, check: bool = True):
         return self._run("git", *args, check=check)
 
+    def is_dirty(self) -> bool:
+        """True if the working tree has changes vs the base commit (EP-04)."""
+        proc = self._git("status", "--porcelain", check=False)
+        return bool(proc.stdout.strip())
+
+    def revert_all(self) -> None:
+        """Discard all working-tree changes and untracked files (EP-04 enforcement)."""
+        self._git("checkout", "--", ".", check=False)
+        self._git("clean", "-fdq", check=False)
+
     def scrub(self) -> None:
         """Flatten git history so the agent cannot recover future commits (EP-01)."""
         from se_support.isolation import scrub_git_history

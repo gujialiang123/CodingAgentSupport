@@ -34,14 +34,18 @@ Do not include a bash block in the same message as SUBMIT."""
 
 _HARNESS_RULES = """
 
-WORKFLOW RULES (must follow in order):
-1. First localize: inspect the repository and identify the faulty file/function
-   BEFORE editing anything.
-2. State a short diagnosis of the root cause.
-3. Make the minimal edit that fixes the root cause.
-4. Verify by running the relevant tests/commands.
-5. If a check fails, classify why before making another edit.
-Do not edit code before completing step 1. Do not SUBMIT before verifying."""
+ENFORCED WORKFLOW (C4). You move through states in order:
+DISCOVER → DIAGNOSE → PATCH → VALIDATE → SUBMIT.
+
+Rules (the runner enforces these):
+1. Code edits are ONLY allowed in PATCH and VALIDATE. Edits attempted in
+   DISCOVER or DIAGNOSE are automatically reverted.
+2. To advance one state, output a line exactly: `NEXT_STATE: <STATE>`.
+3. To leave DISCOVER you must first output a line `LOCALIZATION: <where the fault is>`.
+4. To leave DIAGNOSE you must first output a line `DIAGNOSIS: <root cause>`.
+5. To SUBMIT you must be in the SUBMIT state; to leave VALIDATE you must first
+   output a line `VALIDATION: <how you verified the fix>`.
+Do not edit code before NEXT_STATE: PATCH. Do not SUBMIT before validating."""
 
 
 def build_system_prompt(

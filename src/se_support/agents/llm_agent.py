@@ -36,9 +36,18 @@ from se_support.support import (
     get_condition,
     run_gates,
 )
+from se_support.support.harness import HarnessStateMachine
 
 _BASH_RE = re.compile(r"```bash\s*\n(.*?)```", re.DOTALL)
 _MAX_OBS = 4000
+
+# Harness (C4) directives parsed from the agent's message.
+_NEXT_STATE_RE = re.compile(r"^NEXT_STATE:\s*([A-Z]+)\s*$", re.MULTILINE)
+_RECORD_RES = {
+    "localization": re.compile(r"^LOCALIZATION:\s*(.+)$", re.MULTILINE),
+    "diagnosis": re.compile(r"^DIAGNOSIS:\s*(.+)$", re.MULTILINE),
+    "validation": re.compile(r"^VALIDATION:\s*(.+)$", re.MULTILINE),
+}
 
 
 class LLMAgent:
@@ -64,6 +73,9 @@ class LLMAgent:
         messages: list[dict[str, str]] = [{"role": "system", "content": system}]
         run_dir.append_transcript(TranscriptEvent(step=0, role="system", content=system))
 
+        # EP-04: enforced workflow state machine when C4 (harness) is active.
+        harness = HarnessStateMachine() if cond.harness else None
+
         status = RunStatus.completed
         error = None
         step = 1
@@ -76,6 +88,15 @@ class LLMAgent:
                     TranscriptEvent(step=step, role="assistant", content=reply)
                 )
 
+                # Parse + apply harness records/transitions from this message.
+                if harness is not None:
+                    fb = self._apply_harness_directives(reply, harness, run_dir, step)
+                    if fb:
+                        messages.append({"role": "user", "content": fb})
+                        run_dir.append_transcript(
+                            TranscriptEvent(step=step, role="tool", content=fb)
+                        )
+
                 bash = self._extract_bash(reply)
                 if bash is not None:
                     if self.sandbox_policy is not None:
@@ -86,11 +107,35 @@ class LLMAgent:
                         proc = workspace._run("bash", "-lc", bash, step=step, check=False)
                     obs = (proc.stdout + proc.stderr)[:_MAX_OBS]
                     obs_msg = f"[exit={proc.returncode}]\n{obs}"
+
+                    # EP-04: reject edits made outside PATCH/VALIDATE by reverting.
+                    if harness is not None and not harness.can_edit() and workspace.is_dirty():
+                        workspace.revert_all()
+                        harness.reject("edit", f"edits not allowed in {harness.state.value}")
+                        obs_msg += (
+                            f"\n[HARNESS] Edits are not allowed in {harness.state.value}; "
+                            "your changes were reverted. Localize/diagnose first, then "
+                            "NEXT_STATE: PATCH."
+                        )
                     messages.append({"role": "user", "content": obs_msg})
                     run_dir.append_transcript(
                         TranscriptEvent(step=step, role="tool", content=obs_msg)
                     )
                 elif self._is_submit(reply):
+                    # EP-04: block SUBMIT unless the workflow reached SUBMIT.
+                    if harness is not None and not harness.can_submit():
+                        harness.reject("submit", f"cannot submit from {harness.state.value}")
+                        fb = (
+                            f"[HARNESS] Cannot SUBMIT from {harness.state.value}. Complete "
+                            "DISCOVER→DIAGNOSE→PATCH→VALIDATE with the required records "
+                            "(LOCALIZATION/DIAGNOSIS/VALIDATION) and NEXT_STATE directives first."
+                        )
+                        messages.append({"role": "user", "content": fb})
+                        run_dir.append_transcript(
+                            TranscriptEvent(step=step, role="tool", content=fb)
+                        )
+                        step += 1
+                        continue
                     if cond.gates:
                         results = run_gates(workspace.path)
                         run_dir.write_json(FILE_GATE_RESULTS, results)
@@ -108,20 +153,24 @@ class LLMAgent:
                     submitted = True
                     break
                 else:
-                    nudge = (
-                        "Reply with exactly one ```bash``` block to run a command, "
-                        "or the single word SUBMIT when done."
-                    )
-                    messages.append({"role": "user", "content": nudge})
-                    run_dir.append_transcript(
-                        TranscriptEvent(step=step, role="tool", content=nudge)
-                    )
+                    if harness is None:
+                        nudge = (
+                            "Reply with exactly one ```bash``` block to run a command, "
+                            "or the single word SUBMIT when done."
+                        )
+                        messages.append({"role": "user", "content": nudge})
+                        run_dir.append_transcript(
+                            TranscriptEvent(step=step, role="tool", content=nudge)
+                        )
                 step += 1
             if not submitted and step > self.max_turns:
                 status = RunStatus.timeout
         except Exception as exc:  # noqa: BLE001 - record and continue pipeline
             status = RunStatus.error
             error = repr(exc)
+
+        if harness is not None:
+            self._write_state_transitions(harness, run_dir)
 
         run_dir.write_text(
             FILE_FINAL_MESSAGE,
@@ -146,3 +195,35 @@ class LLMAgent:
     @staticmethod
     def _is_submit(reply: str) -> bool:
         return reply.strip().upper() == "SUBMIT" or reply.strip().upper().endswith("\nSUBMIT")
+
+    @staticmethod
+    def _apply_harness_directives(reply, harness, run_dir, step) -> str | None:
+        """Parse LOCALIZATION/DIAGNOSIS/VALIDATION records + NEXT_STATE directive.
+
+        Returns feedback text to send the agent (e.g. a rejected transition), or
+        None. Records are captured before transitions so prerequisites can be met
+        in the same message.
+        """
+        for kind, rx in _RECORD_RES.items():
+            m = rx.search(reply)
+            if m:
+                harness.record(kind, m.group(1))
+
+        m = _NEXT_STATE_RE.search(reply)
+        if not m:
+            return None
+        t = harness.request_transition(m.group(1))
+        if not t.ok:
+            return f"[HARNESS] Transition {t.frm}->{t.to} rejected: {t.reason}"
+        return f"[HARNESS] Now in {harness.state.value}."
+
+    @staticmethod
+    def _write_state_transitions(harness, run_dir) -> None:
+        rows = []
+        for t in harness.transitions:
+            rows.append({"type": "transition", "from": t.frm, "to": t.to,
+                         "ok": t.ok, "reason": t.reason})
+        for r in harness.rejections:
+            rows.append({"type": "rejection", "state": r.state,
+                         "action": r.action, "reason": r.reason})
+        run_dir.write_json("state_transitions.json", rows)
