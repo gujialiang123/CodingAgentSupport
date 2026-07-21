@@ -11,10 +11,29 @@
       "title": "Condition",
       "type": "string"
     },
+    "condition_version": {
+      "default": "0.1.0",
+      "description": "Version of the C0-C6 support definitions used.",
+      "title": "Condition Version",
+      "type": "string"
+    },
     "created_at": {
       "format": "date-time",
       "title": "Created At",
       "type": "string"
+    },
+    "experiment_id": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "Owning experiment id (runs/<id>/).",
+      "title": "Experiment Id"
     },
     "max_cost_usd": {
       "anyOf": [
@@ -41,6 +60,12 @@
     "model": {
       "description": "Pinned model/snapshot identifier.",
       "title": "Model",
+      "type": "string"
+    },
+    "protocol_version": {
+      "default": "2026-07-21",
+      "description": "Execution-protocol version this run followed.",
+      "title": "Protocol Version",
       "type": "string"
     },
     "run_id": {

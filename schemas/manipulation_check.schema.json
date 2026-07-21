@@ -1,0 +1,95 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "condition": {
+      "description": "Condition id whose treatment is checked.",
+      "title": "Condition",
+      "type": "string"
+    },
+    "context_present": {
+      "default": false,
+      "title": "Context Present",
+      "type": "boolean"
+    },
+    "gates_present": {
+      "default": false,
+      "title": "Gates Present",
+      "type": "boolean"
+    },
+    "harness_present": {
+      "default": false,
+      "title": "Harness Present",
+      "type": "boolean"
+    },
+    "memory_present": {
+      "default": false,
+      "title": "Memory Present",
+      "type": "boolean"
+    },
+    "network_disabled": {
+      "anyOf": [
+        {
+          "type": "boolean"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "Verified that the agent had no network access.",
+      "title": "Network Disabled"
+    },
+    "no_gold_in_visible_inputs": {
+      "anyOf": [
+        {
+          "type": "boolean"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "Verified that agent-visible inputs contain no gold/official-test data.",
+      "title": "No Gold In Visible Inputs"
+    },
+    "notes": {
+      "default": "",
+      "title": "Notes",
+      "type": "string"
+    },
+    "passed": {
+      "default": false,
+      "description": "Overall: did the condition apply exactly its intended treatment?",
+      "title": "Passed",
+      "type": "boolean"
+    },
+    "run_id": {
+      "title": "Run Id",
+      "type": "string"
+    },
+    "support_manifest_hash": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "Hash of the frozen support bundle actually mounted.",
+      "title": "Support Manifest Hash"
+    },
+    "tests_present": {
+      "default": false,
+      "title": "Tests Present",
+      "type": "boolean"
+    }
+  },
+  "required": [
+    "run_id",
+    "condition"
+  ],
+  "title": "ManipulationCheck",
+  "type": "object"
+}

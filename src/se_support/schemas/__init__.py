@@ -16,6 +16,7 @@ from pathlib import Path
 from se_support.schemas.agent_run_result import AgentRunResult, RunStatus
 from se_support.schemas.base import SEModel
 from se_support.schemas.eval_result import EvalResult
+from se_support.schemas.manipulation import ManipulationCheck
 from se_support.schemas.patch_quality_card import PatchQualityCard, QualityLevel
 from se_support.schemas.run_spec import RunSpec
 from se_support.schemas.task_spec import TaskMetadata, TaskSpec
@@ -30,6 +31,7 @@ __all__ = [
     "EvalResult",
     "PatchQualityCard",
     "QualityLevel",
+    "ManipulationCheck",
     "EXPORTED_MODELS",
     "export_schemas",
 ]
@@ -42,6 +44,7 @@ EXPORTED_MODELS: dict[str, type[SEModel]] = {
     "agent_run_result": AgentRunResult,
     "eval_result": EvalResult,
     "patch_quality_card": PatchQualityCard,
+    "manipulation_check": ManipulationCheck,
 }
 
 

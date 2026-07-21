@@ -21,6 +21,14 @@ SUPPORT_CONDITIONS: tuple[str, ...] = (
     "C6_full_stack",
 )
 
+# Versioning for the frozen execution protocol (EXPERIMENT_PLAN_2026-07-21.md).
+# PROTOCOL_VERSION bumps when the experimental procedure changes; CONDITION_VERSION
+# bumps when the definition/implementation of any C0-C6 support artifact changes.
+# Both are recorded on every RunSpec so results can be grouped by the exact
+# construct definitions that produced them.
+PROTOCOL_VERSION: str = "2026-07-21"
+CONDITION_VERSION: str = "0.1.0"
+
 
 def repo_root() -> Path:
     """Return the repository root directory."""

@@ -77,7 +77,7 @@ def run_single(
 
     run_spec = RunSpec(
         run_id=run_id, task_id=task.task_id, agent=getattr(agent, "name", "agent"),
-        model=model, condition=condition, seed=seed,
+        model=model, condition=condition, seed=seed, experiment_id=experiment_id,
     )
     rd.write_model(FILE_TASK, task)
     rd.write_model(FILE_RUN_SPEC, run_spec)
