@@ -22,3 +22,4 @@ machine artifacts under `runs/` and `results/`.
 | 002 | real_smoke | Real 4090 smoke run (Qwen2.5-Coder-7B) | done |
 | 003 | docker_eval_check | SWE-bench Docker evaluation validated | done |
 | 004 | pilot01 | First real C0 vs C6 pilot (SWE-bench Verified) | done |
+| 005 | feasib01 | Integrated-pipeline feasibility (7B, C0/C2/C4/C6) | done |

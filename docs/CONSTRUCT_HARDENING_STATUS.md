@@ -16,7 +16,7 @@ the go/no-go checklists §15. Updated as packages land.
 | EP-06 | C5 memory v2 | ⬜ todo | Repository profiler, one frozen artifact per repo; v1 in place. |
 | EP-07 | C3 gate policy v2 | ✅ done | Frozen `GatePolicy` (blocking/advisory), base-vs-patch delta (legacy warnings excluded), revision budget; official tests never a gate. |
 | EP-08 | Quality card v1 | ✅ done | Process/trajectory metrics; Q-levels capped at Q2 automatically; offline recompute from run dir. |
-| EP-09 | Experiment scheduler | ⬜ todo | Randomized, resumable schedule with infra-only retries (needed for E2/E3). |
+| EP-09 | Experiment scheduler | ✅ done | `experiment/scheduler.py`: randomized, resumable (deterministic run_id + completion marker), infra-only retries, sandbox default-on. A1–A4 wired C2 generation, sandbox default, and per-run manipulation checks into `run_single`. Validated end-to-end in Experiment 005. |
 | EP-10 | Analysis/annotation package | ⬜ todo | Paired tables, McNemar/bootstrap, annotation sampler (needed for E4/analysis). |
 
 ## Go/no-go — Before E1 (§15)
@@ -34,8 +34,9 @@ operational: wire per-task helper generation into the isolated generator zone
 
 ## Suggested next steps (unblocked)
 
-1. EP-05 / EP-06 — strengthen and separate C1 context and C5 memory.
-2. EP-09 — randomized, resumable experiment scheduler (prerequisite for E2/E3).
-3. On the team's return: EP-03 (C2) using `astropy__astropy-13033` as the
-   acceptance fixture, then run E0 (construct/manipulation smoke) and E1
-   (C2 × C3 micro-study).
+1. **Run large-model experiments** on a bigger-GPU machine — see `docs/HANDOFF.md`
+   (the pipeline is turn-key; only the pinned model/endpoint changes).
+2. EP-05 / EP-06 — strengthen and separate C1 context and C5 memory.
+3. EP-10 — analysis/annotation package (paired McNemar/bootstrap, annotation sampler).
+4. Address `docs/HANDOFF.md` §5 limitations (C2 validation + agent execution inside
+   the task Docker image) before publication-grade runs.

@@ -19,9 +19,15 @@ responsibility lives. Update this when adding or removing files.
 |---|---|
 | `__init__.py` | Package docstring + version. |
 | `__main__.py` | Enables `python -m se_support`. |
-| `cli.py` | argparse CLI. Implements `schemas export/list`; stubs `import/run/evaluate/quality`. |
-| `config.py` | On-disk paths (`runs/`, `results/`, `schemas/`, `data/`) and the `SUPPORT_CONDITIONS` list. |
+| `cli.py` | argparse CLI. Implements `schemas export/list`, `import`, `sample`, `run`; stubs `evaluate/quality`. |
+| `config.py` | On-disk paths + `SUPPORT_CONDITIONS` + `PROTOCOL_VERSION`/`CONDITION_VERSION`. |
 | `logging.py` | Human/diagnostic stderr logger (distinct from structured experiment logging). |
+
+### `src/se_support/experiment/` — scheduling (EP-09)
+
+| Path | Purpose |
+|---|---|
+| `scheduler.py` | `run_experiment`/`build_schedule`: tasks×conditions×seeds, randomized, resumable, infra-retry, sandbox default-on. |
 
 ### `src/se_support/schemas/` — data contracts (T1)
 
@@ -83,6 +89,7 @@ responsibility lives. Update this when adding or removing files.
 | `provenance.py` | Assertion-literal traceability to the issue; suspicious/forbidden-literal audit. |
 | `audit.py` | Run the hidden semantic-audit (S) test to catch hard-coded solutions. |
 | `injector.py` | Freeze (hash) + read-only reconstruct of the helper so agent edits can't alter eval. |
+| `pregen.py` | Pre-run generator zone (A1): build base+gold, derive forbidden literals from official test_patch, generate+classify+freeze helper for a task. |
 | `__init__.py` | `build_helper_test` orchestrator: generate → gold-blind select → freeze → classify → audit. |
 | `prompts.py` | `build_system_prompt`: base prompt + condition-driven additions, sourced from the frozen bundle when present. |
 | `context_pack.py` | C1 context generator (repo file map + test hints), lexical/leak-free. |
