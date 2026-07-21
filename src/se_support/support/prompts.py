@@ -48,14 +48,27 @@ def build_system_prompt(
     task: TaskSpec,
     condition: SupportCondition,
     workspace_path: Path,
+    bundle=None,
 ) -> str:
+    """Build the system prompt.
+
+    If a frozen ``bundle`` (EP-02 :class:`SupportBundle`) is given, context and
+    memory text come from the bundle's artifacts (single frozen source). Without
+    a bundle (dev/smoke), artifacts are generated inline.
+    """
     parts = [_BASE]
     parts.append(f"\n## Issue\nTitle: {task.issue_title}\n\n{task.issue_body}")
 
     if condition.context:
-        parts.append("\n" + build_context_pack(task, workspace_path))
+        if bundle is not None and bundle.artifact("context"):
+            parts.append("\n" + bundle.artifact("context").content)
+        else:
+            parts.append("\n" + build_context_pack(task, workspace_path))
     if condition.memory:
-        parts.append("\n" + build_memory(task, workspace_path))
+        if bundle is not None and bundle.artifact("memory"):
+            parts.append("\n" + bundle.artifact("memory").content)
+        else:
+            parts.append("\n" + build_memory(task, workspace_path))
     if condition.harness:
         parts.append(_HARNESS_RULES)
 

@@ -47,6 +47,8 @@ class LLMAgent:
         self.max_turns = max_turns
         # When set, agent bash commands run under this sandbox policy (EP-01).
         self.sandbox_policy = sandbox_policy
+        # When set, the frozen support bundle the agent's prompt is built from (EP-02).
+        self.support_bundle = None
         self.name = f"llm_agent[{getattr(client, 'model', 'unknown')}]"
 
     def run(
@@ -58,7 +60,7 @@ class LLMAgent:
     ) -> AgentRunResult:
         t0 = time.time()
         cond = get_condition(condition)
-        system = build_system_prompt(task, cond, workspace.path)
+        system = build_system_prompt(task, cond, workspace.path, bundle=self.support_bundle)
         messages: list[dict[str, str]] = [{"role": "system", "content": system}]
         run_dir.append_transcript(TranscriptEvent(step=0, role="system", content=system))
 

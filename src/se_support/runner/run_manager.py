@@ -98,6 +98,15 @@ def run_single(
             task.repo, task.base_commit, rd.path / "agent_workspace", rd
         )
 
+    # EP-02: generate the frozen support bundle before the agent starts, write it
+    # to support/, and give it to the agent as its single source of support text.
+    from se_support.support import build_bundle
+
+    bundle = build_bundle(task, condition, agent_ws.path)
+    bundle.write(rd.path / "support")
+    if hasattr(agent, "support_bundle"):
+        agent.support_bundle = bundle
+
     # EP-01 provenance firewall: scrub history, write scrubbed task + manifest,
     # and run the agent's commands under the sandbox.
     if sandbox_policy is not None:

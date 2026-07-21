@@ -68,7 +68,8 @@ responsibility lives. Update this when adding or removing files.
 | Path | Purpose |
 |---|---|
 | `condition.py` | `SupportCondition` + `CONDITIONS` (C0–C6) toggling context/tests/gates/harness/memory. |
-| `prompts.py` | `build_system_prompt`: base prompt + condition-driven additions (context/memory/harness). |
+| `bundle.py` | `SupportBundle`/`build_bundle` (EP-02): frozen, hashed, validated support artifacts generated before the agent runs; C0 empty, C6 = union of C1–C5, C2 tests marked `declared_unimplemented`. |
+| `prompts.py` | `build_system_prompt`: base prompt + condition-driven additions, sourced from the frozen bundle when present. |
 | `context_pack.py` | C1 context generator (repo file map + test hints), lexical/leak-free. |
 | `memory.py` | C5 repo-memory generator (AGENTS.md-style, from repo contents). |
 | `gates.py` | C3 deterministic gates (compileall blocking; ruff/bandit advisory). |

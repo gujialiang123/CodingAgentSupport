@@ -1,5 +1,11 @@
 """Support layer: the experimental conditions C0-C6 and their generators."""
 
+from se_support.support.bundle import (
+    SupportArtifact,
+    SupportBundle,
+    SupportBundleManifest,
+    build_bundle,
+)
 from se_support.support.condition import (
     CONDITIONS,
     SupportCondition,
@@ -15,4 +21,8 @@ __all__ = [
     "build_system_prompt",
     "run_gates",
     "blocking_failures",
+    "SupportBundle",
+    "SupportArtifact",
+    "SupportBundleManifest",
+    "build_bundle",
 ]
