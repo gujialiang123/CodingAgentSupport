@@ -1,0 +1,11 @@
+{
+  "task_id": "swebench_verified__astropy__astropy-13033",
+  "test_file": "helper_test.py",
+  "run_command": "python -m pytest helper_test.py",
+  "classification": "T4",
+  "fail_before": true,
+  "pass_after_gold": true,
+  "audit_passed": true,
+  "forbidden_official_literal_present": false,
+  "notes": "Reference fixture; oracle is issue-level (mentions removed column), not the official exact string."
+}

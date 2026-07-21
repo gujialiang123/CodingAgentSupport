@@ -102,8 +102,20 @@ def _memory_artifact(task: TaskSpec, workspace_path: Path) -> SupportArtifact:
     )
 
 
-def _tests_artifact() -> SupportArtifact:
-    # C2 reproduction-test generation is deferred (EP-03). Record honestly.
+def _tests_artifact(helper_artifact=None) -> SupportArtifact:
+    """C2 helper test artifact.
+
+    If a validated (T3/T4) frozen helper is provided it is carried as ``present``;
+    otherwise the layer is honestly ``declared_unimplemented`` (no helper generated).
+    """
+    from se_support.support.repro_tests.schema import CONFIRMATORY_CLASSES
+
+    if helper_artifact is not None and helper_artifact.classification in CONFIRMATORY_CLASSES:
+        return SupportArtifact(
+            layer="tests", filename="helper_test.py", status=STATUS_PRESENT,
+            hash=helper_artifact.frozen_hash or hash_text(helper_artifact.test_source),
+            content=helper_artifact.test_source,
+        )
     return SupportArtifact(
         layer="tests", filename="helper_test.py",
         status=STATUS_DECLARED_UNIMPLEMENTED, hash=None, content="",
@@ -163,14 +175,20 @@ class SupportBundle:
                 assert art is None, f"{condition.id}: unexpected artifact for disabled {layer}"
 
 
-def build_bundle(task: TaskSpec, condition_id: str, workspace_path: Path) -> SupportBundle:
-    """Generate the frozen support bundle for a condition (before the agent runs)."""
+def build_bundle(
+    task: TaskSpec, condition_id: str, workspace_path: Path, helper_artifact=None
+) -> SupportBundle:
+    """Generate the frozen support bundle for a condition (before the agent runs).
+
+    ``helper_artifact`` is an optional pre-generated, validated C2 helper (EP-03);
+    when present and valid it populates the tests layer for C2/C6.
+    """
     cond = get_condition(condition_id)
     artifacts: list[SupportArtifact] = []
     if cond.context:
         artifacts.append(_context_artifact(task, workspace_path))
     if cond.tests:
-        artifacts.append(_tests_artifact())
+        artifacts.append(_tests_artifact(helper_artifact))
     if cond.gates:
         artifacts.append(_gate_policy_artifact())
     if cond.harness:

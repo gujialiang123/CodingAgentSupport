@@ -72,6 +72,18 @@ responsibility lives. Update this when adding or removing files.
 | `harness.py` | `HarnessStateMachine` (EP-04): enforced C4 workflow DISCOVER→DIAGNOSE→PATCH→VALIDATE→SUBMIT; edit permission by state, required records, transition/rejection logging. |
 | `gate_policy.py` | Frozen C3 gate policy (EP-07): versioned blocking/advisory gates, base-vs-patch advisory delta (legacy warnings excluded), revision budget; official tests never a gate. |
 | `gates.py` | Low-level gate runners (compileall blocking; ruff/bandit advisory). |
+
+### `src/se_support/support/repro_tests/` — C2 reproduction tests (EP-03)
+
+| Path | Purpose |
+|---|---|
+| `schema.py` | `HelperTestArtifact`, `ReproTestClass` (T0–T4), `ReproTestResults` (B/J/H/A/S separation). |
+| `generator.py` | K=3 blind candidate generator (issue-only prompt; model-agnostic via ChatClient). |
+| `validator.py` | Run a candidate on base/gold workspaces; classify T0–T4. |
+| `provenance.py` | Assertion-literal traceability to the issue; suspicious/forbidden-literal audit. |
+| `audit.py` | Run the hidden semantic-audit (S) test to catch hard-coded solutions. |
+| `injector.py` | Freeze (hash) + read-only reconstruct of the helper so agent edits can't alter eval. |
+| `__init__.py` | `build_helper_test` orchestrator: generate → gold-blind select → freeze → classify → audit. |
 | `prompts.py` | `build_system_prompt`: base prompt + condition-driven additions, sourced from the frozen bundle when present. |
 | `context_pack.py` | C1 context generator (repo file map + test hints), lexical/leak-free. |
 | `memory.py` | C5 repo-memory generator (AGENTS.md-style, from repo contents). |
@@ -118,6 +130,10 @@ in diffs.
 | `test_bundle.py` | EP-02 frozen SupportBundle: C0 empty, C6=union hashes, validation, determinism. |
 | `test_harness.py` | EP-04 enforced C4: state machine + agent edit-revert / submit-gating enforcement. |
 | `test_gate_policy.py` | EP-07 frozen C3 gate policy: blocking pass/fail, advisory base-vs-patch delta, no official tests as gates. |
+| `test_quality_card.py` | EP-08 quality card v1: Q-level caps, process metrics, offline recompute. |
+| `test_repro_tests.py` | EP-03 C2 pipeline: fail-before/pass-after, no official literal, semantic audit catches hard-code, frozen read-only, T0–T4. |
+| `fixtures/repro_demo/` | Runnable synthetic repo (base bug + gold + hardcoded-bad + helper + semantic audit) for EP-03. |
+| `fixtures/astropy__astropy-13033/` | Canonical C2 reference fixture (problem statement, helper, semantic audit, expected results). |
 | `fixtures/swebench_sample.jsonl` | Two SWE-bench-shaped raw records for importer tests. |
 | `fixtures/*.valid.json` | One valid example per model (also mirrors proposal §9). |
 | `fixtures/mini_repo/` | Tiny buggy repo (calc + tests) used as an offline task. |

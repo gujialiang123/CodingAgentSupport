@@ -1,0 +1,14 @@
+diff --git a/mod.py b/mod.py
+index 3c2c128..c555181 100644
+--- a/mod.py
++++ b/mod.py
+@@ -5,8 +5,5 @@ REQUIRED = ["time", "flux"]
+ 
+ def remove_required_column(name):
+     if name in REQUIRED:
+-        # BUG: the message does not name the column that was removed.
+-        raise ValueError(
+-            "object is invalid - expected 'time' as the first column but found 'time'"
+-        )
++        raise ValueError("missing required column: %s" % name)
+     return [c for c in REQUIRED if c != name]

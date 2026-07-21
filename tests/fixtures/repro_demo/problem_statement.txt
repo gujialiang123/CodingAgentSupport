@@ -1,0 +1,3 @@
+remove_required_column raises a misleading exception when a required column such
+as 'flux' is removed. The message should tell the user which required column is
+missing, instead of a confusing self-referential message.

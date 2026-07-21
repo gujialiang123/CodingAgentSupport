@@ -84,3 +84,17 @@ def test_bundle_hash_is_deterministic():
     a = build_bundle(_task(), "C6_full_stack", FIXTURES / "mini_repo")
     b = build_bundle(_task(), "C6_full_stack", FIXTURES / "mini_repo")
     assert a.bundle_hash == b.bundle_hash
+
+
+def test_c2_bundle_carries_valid_helper():
+    from se_support.support.repro_tests import freeze
+    from se_support.support.repro_tests.schema import HelperTestArtifact, ReproTestClass
+
+    helper = freeze(HelperTestArtifact(
+        task_id="t", test_source="def test_x():\n    assert True\n",
+        classification=ReproTestClass.T4_decoupled_valid,
+    ))
+    b = build_bundle(_task(), "C2_tests", FIXTURES / "mini_repo", helper_artifact=helper)
+    art = b.artifact("tests")
+    assert art.status == STATUS_PRESENT
+    assert "def test_x" in art.content

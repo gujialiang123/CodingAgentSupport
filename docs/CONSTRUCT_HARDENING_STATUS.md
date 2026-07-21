@@ -10,7 +10,7 @@ the go/no-go checklists §15. Updated as packages land.
 | EP-00 | Protocol/schema freeze | ✅ done | `protocol_version`/`condition_version`/`experiment_id` on RunSpec; `ManipulationCheck` schema. |
 | EP-01 | Sandbox + provenance firewall | ✅ done | `se_support.isolation`: bwrap fs+network confinement, git-history flatten, scrubbed task, hashed manifest; red-team tests pass. |
 | EP-02 | Frozen SupportBundle | ✅ done | `build_bundle`: C0 empty, C6 = union of C1–C5 (hash-verified), C2 `declared_unimplemented`. |
-| EP-03 | C2 reproduction-test pipeline | ⏸️ **held** | Deferred by request pending research on the helper/official test boundary (see `DISCUSSION_2026-07-09.md`). |
+| EP-03 | C2 reproduction-test pipeline | ✅ done | `repro_tests/`: K=3 blind generator, T0–T4 classifier, provenance/leakage audit, semantic-audit (S), frozen read-only injection; canonical astropy-13033 fixture + runnable synthetic acceptance fixture. Full run-integration (per-task generation in the isolated generator zone) is the remaining wiring. |
 | EP-04 | C4 enforced harness | ✅ done | `HarnessStateMachine`; agent reverts edits outside PATCH/VALIDATE and blocks premature SUBMIT; transitions logged. |
 | EP-05 | C1 context v2 | ⬜ todo | Retrieval-based, budgeted context; v1 (file map + test hints) in place. |
 | EP-06 | C5 memory v2 | ⬜ todo | Repository profiler, one frozen artifact per repo; v1 in place. |
@@ -24,13 +24,13 @@ the go/no-go checklists §15. Updated as packages land.
 - [x] Agent filesystem and network isolation passes adversarial tests — EP-01
 - [x] Gold patch / official test patch / test ids absent from agent-visible inputs — EP-01
 - [x] Frozen support-bundle interface implemented — EP-02
-- [ ] Canonical Astropy helper-test fixture passes base/gold/semantic checks — **EP-03 (held)**
-- [ ] B/J/H/A/S outcomes have separate schema fields — **EP-03 (held)**
+- [x] Canonical Astropy helper-test fixture passes base/gold/semantic checks — EP-03
+- [x] B/J/H/A/S outcomes have separate schema fields — EP-03 (`ReproTestResults`)
 - [x] Main agent/model/budget configuration recorded — EP-00 / RunSpec
 
-The only remaining Before-E1 items depend on C2 (EP-03), which is intentionally
-held pending the team's research on the reproduction-test boundary. All stage-1
-items that are **not** blocked by that decision are complete.
+All Before-E1 construct items are now implemented. Remaining before running E1 is
+operational: wire per-task helper generation into the isolated generator zone
+(pre-run), and build the E0/E1 experiment drivers (EP-09 scheduler helps here).
 
 ## Suggested next steps (unblocked)
 

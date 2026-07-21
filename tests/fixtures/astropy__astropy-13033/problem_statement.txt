@@ -1,0 +1,7 @@
+TimeSeries: misleading exception when required column check fails.
+
+For a TimeSeries object that has additional required columns (in addition to
+'time'), when code mistakenly removes a required column, the exception is
+misleading: it says "expected 'time' as the first columns but found 'time'".
+
+Expected: an exception that informs the user that a required column is missing.
