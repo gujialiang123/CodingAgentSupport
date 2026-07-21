@@ -30,7 +30,7 @@ def test_gold_agent_resolves(tmp_path):
     assert ev.resolved is True
     assert ev.fail_to_pass_passed == ev.fail_to_pass_total == 1
     assert ev.pass_to_pass_passed == ev.pass_to_pass_total == 1
-    assert outcome.quality_card.quality_level.startswith("Q3")
+    assert outcome.quality_card.quality_level.startswith("Q2")
     # Artifacts exist.
     for name in ("task.json", "run_spec.json", "final.patch", "eval_result.json",
                  "quality_card.json", "transcript.jsonl", "commands.jsonl"):

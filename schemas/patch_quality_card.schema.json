@@ -121,6 +121,92 @@
       "title": "Maintainability",
       "type": "object"
     },
+    "ProcessMetrics": {
+      "additionalProperties": false,
+      "description": "Trajectory/process outcomes derived from the run logs (EP-08).\n\nAll fields are recomputable offline from transcript.jsonl / commands.jsonl /\nstate_transitions.json, so they can be back-filled without re-running.",
+      "properties": {
+        "commands_run": {
+          "default": 0,
+          "title": "Commands Run",
+          "type": "integer"
+        },
+        "edits_made": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Edits Made"
+        },
+        "failed_commands": {
+          "default": 0,
+          "title": "Failed Commands",
+          "type": "integer"
+        },
+        "gate_failures": {
+          "default": 0,
+          "title": "Gate Failures",
+          "type": "integer"
+        },
+        "gate_revisions": {
+          "default": 0,
+          "title": "Gate Revisions",
+          "type": "integer"
+        },
+        "harness_rejections": {
+          "default": 0,
+          "title": "Harness Rejections",
+          "type": "integer"
+        },
+        "localized_before_edit": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Localized Before Edit"
+        },
+        "sandbox_backend": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Sandbox Backend"
+        },
+        "stop_reason": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Stop Reason"
+        },
+        "turns": {
+          "default": 0,
+          "title": "Turns",
+          "type": "integer"
+        }
+      },
+      "title": "ProcessMetrics",
+      "type": "object"
+    },
     "QualityLevel": {
       "enum": [
         "Q0_invalid",
@@ -269,6 +355,9 @@
       "default": "",
       "title": "Notes",
       "type": "string"
+    },
+    "process": {
+      "$ref": "#/$defs/ProcessMetrics"
     },
     "quality_level": {
       "$ref": "#/$defs/QualityLevel",

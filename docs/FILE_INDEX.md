@@ -95,7 +95,8 @@ responsibility lives. Update this when adding or removing files.
 
 | Path | Purpose |
 |---|---|
-| `quality_card.py` | `build_card`: offline, re-runnable `PatchQualityCard` v0 (functional correctness + locality + gold overlap). |
+| `quality_card.py` | `build_card` / `recompute_card_from_run_dir` (EP-08): correctness + locality + process metrics; Q-levels capped at Q2 automatically (Q3+ needs human review). |
+| `trajectory.py` | Extract process/trajectory metrics (turns, commands, gate failures, harness rejections, stop reason) offline from run logs. |
 
 ## `schemas/` — generated
 

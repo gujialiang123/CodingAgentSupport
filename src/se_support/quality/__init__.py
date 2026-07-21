@@ -6,6 +6,6 @@ already-recorded inputs (EvalResult + final diff + optional gold diff), so new
 metrics can be back-filled without re-running the agent.
 """
 
-from se_support.quality.quality_card import build_card
+from se_support.quality.quality_card import build_card, recompute_card_from_run_dir
 
-__all__ = ["build_card"]
+__all__ = ["build_card", "recompute_card_from_run_dir"]

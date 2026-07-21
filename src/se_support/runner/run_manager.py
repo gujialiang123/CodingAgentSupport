@@ -136,8 +136,8 @@ def run_single(
     eval_result.run_id = run_id
     rd.write_model(FILE_EVAL, eval_result)
 
-    # Quality card (offline, from artifacts).
-    card = build_card(task, eval_result, final_diff, _load_gold_diff(task))
+    # Quality card (offline, from artifacts) incl. trajectory/process metrics.
+    card = build_card(task, eval_result, final_diff, _load_gold_diff(task), run_dir=rd.path)
     rd.write_model(FILE_QUALITY, card)
 
     return RunOutcome(run_id=run_id, run_dir=rd.path, eval_result=eval_result, quality_card=card)

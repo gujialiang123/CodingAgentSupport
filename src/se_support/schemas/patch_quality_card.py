@@ -70,6 +70,25 @@ class Reviewability(SEModel):
     human_rating: int | None = None
 
 
+class ProcessMetrics(SEModel):
+    """Trajectory/process outcomes derived from the run logs (EP-08).
+
+    All fields are recomputable offline from transcript.jsonl / commands.jsonl /
+    state_transitions.json, so they can be back-filled without re-running.
+    """
+
+    turns: int = 0
+    commands_run: int = 0
+    failed_commands: int = 0
+    edits_made: int | None = None
+    gate_failures: int = 0
+    gate_revisions: int = 0
+    harness_rejections: int = 0
+    localized_before_edit: bool | None = None
+    sandbox_backend: str | None = None
+    stop_reason: str | None = None  # "submitted" | "timeout" | "error"
+
+
 class PatchQualityCard(SEModel):
     run_id: str
     task_id: str
@@ -81,5 +100,6 @@ class PatchQualityCard(SEModel):
     security_reliability: SecurityReliability = Field(default_factory=SecurityReliability)
     test_adequacy: TestAdequacy = Field(default_factory=TestAdequacy)
     reviewability: Reviewability = Field(default_factory=Reviewability)
+    process: ProcessMetrics = Field(default_factory=ProcessMetrics)
     failure_modes: list[str] = Field(default_factory=list)
     notes: str = ""
