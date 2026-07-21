@@ -23,3 +23,4 @@ machine artifacts under `runs/` and `results/`.
 | 003 | docker_eval_check | SWE-bench Docker evaluation validated | done |
 | 004 | pilot01 | First real C0 vs C6 pilot (SWE-bench Verified) | done |
 | 005 | feasib01 | Integrated-pipeline feasibility (7B, C0/C2/C4/C6) | done |
+| 006 | formal01 | Formal-standard C0 vs C6 with 7B | done (6/12) |

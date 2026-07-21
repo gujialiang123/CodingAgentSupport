@@ -82,7 +82,12 @@ The scheduler skips already-completed cells, so interrupted runs resume safely.
    but cannot run the repo's real tests/deps. Consider running the agent phase
    inside the instance image for iterative test-driven behavior.
 3. **C1/C5 are weak v1** (file map / generic recipes). EP-05/EP-06 strengthen them.
-4. **Analysis package (EP-10) not built**: McNemar/bootstrap paired tables,
+4. **Enforced harness (C4) can hurt weak models.** In Experiment 006 the 7B timed
+   out under C6, spending its turn budget on the state protocol instead of coding,
+   while C0 produced the only applying patch. Re-check with the capable model
+   (the harness is expected to help there); consider a higher turn budget and/or a
+   more forgiving protocol for weaker models.
+5. **Analysis package (EP-10) not built**: McNemar/bootstrap paired tables,
    quality-among-resolved, annotation sampler. Needed to produce paper tables.
 5. **Human annotation (E4)** needs annotators (codebook + double-coding + kappa).
 6. **Q3+ quality levels** require the mature rubric/human review (auto-capped at Q2).
