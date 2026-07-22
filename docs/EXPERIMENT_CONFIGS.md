@@ -75,3 +75,24 @@ python -m se_support import swebench-verified --output data/tasks/all500.jsonl
   ```
 - Results: `results/ablation01.jsonl`; narrative `docs/experiments/007_*`.
 - **Resumable:** re-run the exact command to finish/extend (completed cells skip).
+
+### Exp 008 — ablation02 (scaled C0–C6, 12 tasks × 5 repos)
+- **Model:** `qwen3.7-plus` via 302.ai (`https://api.302.ai/v1`, key not committed).
+- **Cohort:** `data/tasks/ablation12.jsonl` — 12 tasks across psf/requests(4),
+  pytest(3), pylint(2), pallets/flask(1), pydata/xarray(2). Gold-eval pre-checked
+  for the 4 new repos (plan §7.4).
+- **Conditions:** C0–C6 → 12×7 = 84 runs. Budgets: **max_turns 25**, max_tokens 4096.
+- Isolation ON, C2 gen ON, concurrency `--max-workers 6`.
+- **Command:**
+  ```bash
+  python -m scripts.run_feasibility --tasks data/tasks/ablation12.jsonl \
+    --conditions C0_minimal C1_context C2_tests C3_gates C4_harness C5_memory C6_full_stack \
+    --model qwen3.7-plus --base-url https://api.302.ai/v1 --api-key <KEY> \
+    --max-tokens 4096 --max-turns 25 --max-workers 6 \
+    --experiment-id ablation02 --output runs/ablation02 --results results/ablation02.jsonl
+  # analysis:
+  python -m scripts.analyze --experiment-id ablation02 --output results/ablation02_analysis.md
+  ```
+- Results: `results/ablation02.jsonl` + `results/ablation02_analysis.md`; narrative
+  `docs/experiments/008_*`. Resolution by condition: C0 .42, C1 .50, C2 .67,
+  C3 .58, C4 .58, C5 .67, C6 .33 (single supports help; C6 worst).

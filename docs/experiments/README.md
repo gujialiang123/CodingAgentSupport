@@ -25,3 +25,4 @@ machine artifacts under `runs/` and `results/`.
 | 005 | feasib01 | Integrated-pipeline feasibility (7B, C0/C2/C4/C6) | done |
 | 006 | formal01 | Formal-standard C0 vs C6 with 7B | done (6/12) |
 | 007 | ablation01 | Full C0–C6 ablation with qwen3.7-plus (302.ai) | done |
+| 008 | ablation02 | Scaled C0–C6 ablation (12 tasks × 5 repos) | done |

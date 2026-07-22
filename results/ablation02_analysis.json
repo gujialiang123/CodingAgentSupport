@@ -1,0 +1,144 @@
+{
+  "experiment_id": "ablation02",
+  "condition_summaries": [
+    {
+      "condition": "C0_minimal",
+      "n": 12,
+      "resolved": 5,
+      "applying": 10,
+      "q2_plus": 5,
+      "resolution_rate": 0.4167
+    },
+    {
+      "condition": "C1_context",
+      "n": 12,
+      "resolved": 6,
+      "applying": 11,
+      "q2_plus": 6,
+      "resolution_rate": 0.5
+    },
+    {
+      "condition": "C2_tests",
+      "n": 12,
+      "resolved": 8,
+      "applying": 11,
+      "q2_plus": 8,
+      "resolution_rate": 0.6667
+    },
+    {
+      "condition": "C3_gates",
+      "n": 12,
+      "resolved": 7,
+      "applying": 11,
+      "q2_plus": 7,
+      "resolution_rate": 0.5833
+    },
+    {
+      "condition": "C4_harness",
+      "n": 12,
+      "resolved": 7,
+      "applying": 9,
+      "q2_plus": 7,
+      "resolution_rate": 0.5833
+    },
+    {
+      "condition": "C5_memory",
+      "n": 12,
+      "resolved": 8,
+      "applying": 12,
+      "q2_plus": 8,
+      "resolution_rate": 0.6667
+    },
+    {
+      "condition": "C6_full_stack",
+      "n": 12,
+      "resolved": 4,
+      "applying": 7,
+      "q2_plus": 4,
+      "resolution_rate": 0.3333
+    }
+  ],
+  "contrasts": [
+    {
+      "condition": "C1_context",
+      "baseline": "C0_minimal",
+      "n_pairs": 12,
+      "both_resolved": 5,
+      "only_treat": 1,
+      "only_base": 0,
+      "neither": 6,
+      "delta_rate": 0.08333333333333333,
+      "mcnemar_p": 1.0,
+      "boot_lo": 0.0,
+      "boot_hi": 0.25000000000000006
+    },
+    {
+      "condition": "C2_tests",
+      "baseline": "C0_minimal",
+      "n_pairs": 12,
+      "both_resolved": 5,
+      "only_treat": 3,
+      "only_base": 0,
+      "neither": 4,
+      "delta_rate": 0.25,
+      "mcnemar_p": 0.25,
+      "boot_lo": 0.0,
+      "boot_hi": 0.5
+    },
+    {
+      "condition": "C3_gates",
+      "baseline": "C0_minimal",
+      "n_pairs": 12,
+      "both_resolved": 5,
+      "only_treat": 2,
+      "only_base": 0,
+      "neither": 5,
+      "delta_rate": 0.16666666666666666,
+      "mcnemar_p": 0.5,
+      "boot_lo": 0.0,
+      "boot_hi": 0.4166666666666667
+    },
+    {
+      "condition": "C4_harness",
+      "baseline": "C0_minimal",
+      "n_pairs": 12,
+      "both_resolved": 4,
+      "only_treat": 3,
+      "only_base": 1,
+      "neither": 4,
+      "delta_rate": 0.16666666666666666,
+      "mcnemar_p": 0.625,
+      "boot_lo": -0.16666666666666663,
+      "boot_hi": 0.5
+    },
+    {
+      "condition": "C5_memory",
+      "baseline": "C0_minimal",
+      "n_pairs": 12,
+      "both_resolved": 5,
+      "only_treat": 3,
+      "only_base": 0,
+      "neither": 4,
+      "delta_rate": 0.25,
+      "mcnemar_p": 0.25,
+      "boot_lo": 0.0,
+      "boot_hi": 0.5
+    },
+    {
+      "condition": "C6_full_stack",
+      "baseline": "C0_minimal",
+      "n_pairs": 12,
+      "both_resolved": 2,
+      "only_treat": 2,
+      "only_base": 3,
+      "neither": 5,
+      "delta_rate": -0.08333333333333333,
+      "mcnemar_p": 1.0,
+      "boot_lo": -0.41666666666666674,
+      "boot_hi": 0.25000000000000006
+    }
+  ],
+  "warnings": [
+    "small cohort (n=12/condition): directional only, no stats claim"
+  ]
+}
