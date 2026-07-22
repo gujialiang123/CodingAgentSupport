@@ -96,3 +96,23 @@ python -m se_support import swebench-verified --output data/tasks/all500.jsonl
 - Results: `results/ablation02.jsonl` + `results/ablation02_analysis.md`; narrative
   `docs/experiments/008_*`. Resolution by condition: C0 .42, C1 .50, C2 .67,
   C3 .58, C4 .58, C5 .67, C6 .33 (single supports help; C6 worst).
+
+### Exp 009A — budget/orchestration diagnosis (in-container)
+- **Model:** `qwen3.7-plus` via 302.ai. **In-container** (`--in-container`): agent
+  runs inside the SWE-bench instance image at /testbed (real tests, gates, helper).
+- **Cohort:** `data/tasks/ablation12.jsonl` (12 tasks × 5 repos).
+- **Conditions:** C0, C4, C6, C6_minus_C4 (full stack minus harness) at 25 turns;
+  plus a separate C6 @ 50 turns block. **3 seeds**.
+- **25-turn block:** 12 × 4 × 3 = 144 runs (`exp009a_t25`).
+  ```bash
+  python -m scripts.run_feasibility --tasks data/tasks/ablation12.jsonl \
+    --conditions C0_minimal C4_harness C6_full_stack C6_minus_C4 \
+    --model qwen3.7-plus --base-url https://api.302.ai/v1 --api-key <KEY> \
+    --max-tokens 4096 --max-turns 25 --max-workers 4 --seeds 0 1 2 --in-container \
+    --experiment-id exp009a_t25 --output runs/exp009a_t25 --results results/exp009a_t25.jsonl
+  ```
+- **50-turn block (C6 only):** 12 × 1 × 3 = 36 runs (`exp009a_c6t50`), same command
+  with `--conditions C6_full_stack --max-turns 50 --experiment-id exp009a_c6t50`.
+- Pre-pull the 12 instance images first (avoids concurrent-pull storms).
+- Diagnosis logic (plan P3): C6@50 recovers → budget; C6_minus_C4@25 recovers →
+  harness overhead; neither → real negative interaction; seeds flip → noise.
