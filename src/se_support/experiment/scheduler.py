@@ -71,6 +71,7 @@ def run_experiment(
     results_path: Path | None = None,
     progress: bool = True,
     max_workers: int = 1,
+    in_container: bool = False,
 ) -> list[dict]:
     """Run the full schedule and return per-cell result rows.
 
@@ -101,7 +102,7 @@ def run_experiment(
                     evaluator=evaluator, sandbox_policy=sandbox_policy,
                     generator_client=generator_client,
                     docker_python_exe=docker_python_exe, docker_env=docker_env,
-                    dataset_name=dataset_name,
+                    dataset_name=dataset_name, in_container=in_container,
                 )
                 return _row_from_outcome(cell, outcome)
             except Exception as exc:  # noqa: BLE001 - infra retry / record

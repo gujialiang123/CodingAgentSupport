@@ -38,6 +38,8 @@ def main() -> int:
     ap.add_argument("--output", default="runs")
     ap.add_argument("--results", default=None)
     ap.add_argument("--no-sandbox", action="store_true")
+    ap.add_argument("--in-container", action="store_true",
+                    help="Run the agent inside the SWE-bench instance image (P1).")
     ap.add_argument("--max-tokens", type=int, default=1024,
                     help="Completion token budget per turn (raise for reasoning models).")
     ap.add_argument("--max-workers", type=int, default=1,
@@ -56,7 +58,9 @@ def main() -> int:
     def agent_factory():
         return LLMAgent(make_client(), max_turns=args.max_turns)
 
-    sandbox = None if args.no_sandbox else SandboxPolicy.confirmatory()
+    # In container mode the container provides isolation (--network none); the
+    # host bwrap sandbox is not applied to container exec.
+    sandbox = None if (args.no_sandbox or args.in_container) else SandboxPolicy.confirmatory()
 
     run_experiment(
         experiment_id=args.experiment_id, tasks=tasks, conditions=args.conditions,
@@ -66,7 +70,7 @@ def main() -> int:
         docker_python_exe=args.swebench_python, docker_env=docker_env,
         dataset_name=args.dataset_name,
         results_path=Path(args.results) if args.results else None,
-        max_workers=args.max_workers,
+        max_workers=args.max_workers, in_container=args.in_container,
     )
     return 0
 

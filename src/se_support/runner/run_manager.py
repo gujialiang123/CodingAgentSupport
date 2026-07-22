@@ -67,6 +67,8 @@ def run_single(
     dataset_name: str = "SWE-bench/SWE-bench_Verified",
     sandbox_policy=None,
     generator_client=None,
+    in_container: bool = False,
+    namespace: str = "swebench",
 ) -> RunOutcome:
     """Execute one run end-to-end.
 
@@ -80,6 +82,10 @@ def run_single(
 
     When ``generator_client`` is provided and the condition includes tests
     (C2/C6), a C2 helper is generated in a pre-run generator zone (A1/EP-03).
+
+    When ``in_container=True`` (P1) the agent runs **inside** the task's SWE-bench
+    instance image at ``/testbed`` (deps installed, network off), so it can run the
+    repo's real tests, C3 gates, and the C2 helper. Official Docker eval unchanged.
     """
     run_id = run_id or uuid.uuid4().hex[:12]
     rd = RunDirectory.create(runs_root, experiment_id, run_id)
@@ -93,19 +99,48 @@ def run_single(
     rd.write_model(FILE_RUN_SPEC, run_spec)
 
     mode = _resolve_mode(task, evaluator)
-
-    # Build the agent workspace from the base state.
-    if mode == "fixture":
-        agent_ws = Workspace.from_template(_template(task), rd.path / "agent_workspace", rd)
-    else:
-        agent_ws = Workspace.from_git(
-            task.repo, task.base_commit, rd.path / "agent_workspace", rd
-        )
+    use_container = in_container and mode == "real"
 
     from se_support.support.condition import get_condition as _get_cond
 
     cond = _get_cond(condition)
 
+    # Build the agent workspace from the base state.
+    container = None
+    if use_container:
+        from se_support.runner.container_workspace import ContainerWorkspace
+
+        instance_id = task.task_id.split("__", 1)[1] if "__" in task.task_id else task.task_id
+        container = ContainerWorkspace.start(
+            instance_id, rd, namespace=namespace, env=docker_env
+        )
+        agent_ws = container
+        reader = container
+    elif mode == "fixture":
+        agent_ws = Workspace.from_template(_template(task), rd.path / "agent_workspace", rd)
+        reader = None
+    else:
+        agent_ws = Workspace.from_git(
+            task.repo, task.base_commit, rd.path / "agent_workspace", rd
+        )
+        reader = None
+
+    try:
+        return _run_body(
+            task, agent, condition, cond, run_id, rd, mode, use_container,
+            agent_ws, container, reader, generator_client, model,
+            sandbox_policy, dataset_name, docker_python_exe, docker_env,
+        )
+    finally:
+        if container is not None:
+            container.close()
+
+
+def _run_body(
+    task, agent, condition, cond, run_id, rd, mode, use_container,
+    agent_ws, container, reader, generator_client, model,
+    sandbox_policy, dataset_name, docker_python_exe, docker_env,
+) -> RunOutcome:
     # A1/EP-03: generate the C2 helper (pre-run generator zone) for C2/C6.
     helper_artifact = None
     if cond.tests and generator_client is not None:
@@ -119,37 +154,46 @@ def run_single(
         except Exception as exc:  # noqa: BLE001 - record, do not crash the run
             rd.write_json("support/helper_artifact_error.json", {"error": repr(exc)})
 
-    # EP-02: generate the frozen support bundle before the agent starts, write it
-    # to support/, and give it to the agent as its single source of support text.
+    # EP-02: generate the frozen support bundle before the agent starts.
     from se_support.support import build_bundle
 
-    bundle = build_bundle(task, condition, agent_ws.path, helper_artifact=helper_artifact)
+    bundle = build_bundle(
+        task, condition, agent_ws.path, helper_artifact=helper_artifact, reader=reader
+    )
     bundle.write(rd.path / "support")
     if hasattr(agent, "support_bundle"):
         agent.support_bundle = bundle
 
-    # EP-07: compute advisory-gate baseline on the BASE tree (before any edits)
-    # so new warnings can be separated from pre-existing legacy warnings.
+    # P1: inject a valid C2 helper read-only into the container so the agent can
+    # run it (C2/C6). Frozen source; the evaluator's copy is unaffected by edits.
+    if use_container and cond.tests and helper_artifact is not None \
+            and helper_artifact.test_source:
+        container.inject_file("/testbed/se_support_helper_test.py",
+                              helper_artifact.test_source)
+
+    # EP-07: advisory-gate baseline on the BASE tree (before edits).
     if cond.gates and hasattr(agent, "gate_baseline"):
         from se_support.support.gate_policy import compute_baseline
 
-        agent.gate_baseline = compute_baseline(agent_ws.path, getattr(agent, "gate_policy", None))
+        gate_exec = container.gate_exec_fn() if use_container else None
+        agent.gate_baseline = compute_baseline(
+            agent_ws.path, getattr(agent, "gate_policy", None), exec_fn=gate_exec
+        )
 
-    # EP-01 provenance firewall: scrub history, write scrubbed task + manifest,
-    # and run the agent's commands under the sandbox.
-    if sandbox_policy is not None:
-        _apply_isolation(task, condition, run_id, agent, agent_ws, rd, sandbox_policy)
+    # EP-01 provenance firewall (host sandbox OR container isolation).
+    if sandbox_policy is not None or use_container:
+        _apply_isolation(task, condition, run_id, agent, agent_ws, rd, sandbox_policy,
+                         use_container=use_container)
 
-    # A4/E0: manipulation check -- record whether the treatment was actually applied.
-    _write_manipulation_check(
-        run_id, condition, cond, bundle, sandbox_policy, rd
-    )
+    # A4/E0: manipulation check.
+    _write_manipulation_check(run_id, condition, cond, bundle, sandbox_policy, rd,
+                              use_container=use_container)
 
     agent.run(task, condition, agent_ws, rd)
     final_diff = agent_ws.final_diff()
     rd.write_text(FILE_FINAL_PATCH, final_diff)
 
-    # Evaluate.
+    # Evaluate (always the official Docker harness for real tasks).
     if mode == "fixture":
         eval_result = evaluate_patch(task, final_diff, rd.path / "eval_workspace", rd)
     else:
@@ -164,10 +208,12 @@ def run_single(
     card = build_card(task, eval_result, final_diff, _load_gold_diff(task), run_dir=rd.path)
     rd.write_model(FILE_QUALITY, card)
 
-    return RunOutcome(run_id=run_id, run_dir=rd.path, eval_result=eval_result, quality_card=card)
+    return RunOutcome(run_id=run_id, run_dir=rd.path, eval_result=eval_result,
+                      quality_card=card)
 
 
-def _apply_isolation(task, condition, run_id, agent, agent_ws, rd, sandbox_policy) -> None:
+def _apply_isolation(task, condition, run_id, agent, agent_ws, rd, sandbox_policy,
+                     use_container: bool = False) -> None:
     import json
 
     from se_support.isolation import (
@@ -178,7 +224,7 @@ def _apply_isolation(task, condition, run_id, agent, agent_ws, rd, sandbox_polic
         scrubbed_task_dict,
     )
 
-    if sandbox_policy.enable_sandbox:
+    if use_container or (sandbox_policy is not None and sandbox_policy.enable_sandbox):
         agent_ws.scrub()
 
     scrubbed = scrubbed_task_dict(task)
@@ -186,21 +232,30 @@ def _apply_isolation(task, condition, run_id, agent, agent_ws, rd, sandbox_polic
     scrubbed_blob = json.dumps(scrubbed, sort_keys=True)
     rd.write_json("scrubbed_task.json", scrubbed)
 
-    backend = sandbox_available() if sandbox_policy.enable_sandbox else "none"
+    if use_container:
+        # Network isolation is provided by the container (--network none); the
+        # agent execs inside /testbed and cannot reach the host run dir.
+        backend = "container"
+        network_allowed = False
+    else:
+        backend = sandbox_available() if sandbox_policy.enable_sandbox else "none"
+        network_allowed = sandbox_policy.allow_network
     manifest = VisibleInputManifest(
         run_id=run_id, condition=condition, base_commit=task.base_commit,
         scrubbed_task_hash=hash_text(scrubbed_blob),
         sandbox_backend=backend or "none",
-        network_allowed=sandbox_policy.allow_network,
+        network_allowed=network_allowed,
     )
     rd.write_model("visible_input_manifest.json", manifest)
 
-    # Ensure the agent actually uses the sandbox policy.
-    if hasattr(agent, "sandbox_policy"):
+    # Ensure the agent uses the sandbox policy (host workspaces only; the
+    # container workspace ignores the policy and isolates via --network none).
+    if hasattr(agent, "sandbox_policy") and not use_container:
         agent.sandbox_policy = sandbox_policy
 
 
-def _write_manipulation_check(run_id, condition, cond, bundle, sandbox_policy, rd) -> None:
+def _write_manipulation_check(run_id, condition, cond, bundle, sandbox_policy, rd,
+                              use_container: bool = False) -> None:
     """A4/E0: record whether the condition applied exactly its intended treatment."""
     from se_support.schemas import ManipulationCheck
 
@@ -218,13 +273,19 @@ def _write_manipulation_check(run_id, condition, cond, bundle, sandbox_policy, r
     # Passed = non-tests layers match expectation (tests may lack a valid helper).
     passed = all(actual[layer] == expected[layer] for layer in expected if layer != "tests")
 
+    net_disabled = None
+    if use_container:
+        net_disabled = True
+    elif sandbox_policy is not None:
+        net_disabled = not sandbox_policy.allow_network
+
     mc = ManipulationCheck(
         run_id=run_id, condition=condition,
         context_present=actual["context"], tests_present=actual["tests"],
         gates_present=actual["gates"], harness_present=actual["harness"],
         memory_present=actual["memory"],
-        no_gold_in_visible_inputs=True if sandbox_policy is not None else None,
-        network_disabled=(not sandbox_policy.allow_network) if sandbox_policy else None,
+        no_gold_in_visible_inputs=True if (sandbox_policy is not None or use_container) else None,
+        network_disabled=net_disabled,
         support_manifest_hash=bundle.bundle_hash,
         passed=passed,
     )

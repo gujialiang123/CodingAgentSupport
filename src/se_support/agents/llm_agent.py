@@ -111,6 +111,9 @@ class LLMAgent:
                         proc, _backend = workspace.run_sandboxed(
                             bash, self.sandbox_policy, step=step
                         )
+                    elif not hasattr(workspace, "_run"):
+                        # Container workspace: always exec inside the container.
+                        proc, _backend = workspace.run_sandboxed(bash, None, step=step)
                     else:
                         proc = workspace._run("bash", "-lc", bash, step=step, check=False)
                     obs = (proc.stdout + proc.stderr)[:_MAX_OBS]
@@ -145,8 +148,11 @@ class LLMAgent:
                         step += 1
                         continue
                     if cond.gates:
+                        gate_exec = (workspace.gate_exec_fn()
+                                     if hasattr(workspace, "gate_exec_fn") else None)
                         results = run_policy(
-                            workspace.path, self.gate_baseline, self.gate_policy
+                            workspace.path, self.gate_baseline, self.gate_policy,
+                            exec_fn=gate_exec,
                         )
                         run_dir.write_json(
                             FILE_GATE_RESULTS, [r.to_dict() for r in results]

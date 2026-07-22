@@ -14,14 +14,17 @@ from se_support.schemas import TaskSpec
 _CONVENTION_FILES = ("pyproject.toml", "setup.cfg", "tox.ini", "ruff.toml", ".ruff.toml")
 
 
-def build_memory(task: TaskSpec, workspace_path: Path) -> str:
+def build_memory(task: TaskSpec, workspace_path: Path, reader=None) -> str:
     lines = ["## Repository memory (AGENTS.md, auto-generated)", ""]
     if task.setup_command:
         lines.append(f"- Setup: `{task.setup_command}`")
     if task.test_command:
         lines.append(f"- Run tests: `{task.test_command}`")
 
-    detected = [f for f in _CONVENTION_FILES if (workspace_path / f).exists()]
+    if reader is not None and hasattr(reader, "has_file"):
+        detected = [f for f in _CONVENTION_FILES if reader.has_file(f)]
+    else:
+        detected = [f for f in _CONVENTION_FILES if (workspace_path / f).exists()]
     if detected:
         lines.append(f"- Config/convention files present: {', '.join(detected)}")
     lines.append("- Keep changes minimal and consistent with existing style.")

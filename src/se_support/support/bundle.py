@@ -86,16 +86,16 @@ def _harness_policy_artifact() -> SupportArtifact:
     )
 
 
-def _context_artifact(task: TaskSpec, workspace_path: Path) -> SupportArtifact:
-    content = build_context_pack(task, workspace_path)
+def _context_artifact(task: TaskSpec, workspace_path: Path, reader=None) -> SupportArtifact:
+    content = build_context_pack(task, workspace_path, reader=reader)
     return SupportArtifact(
         layer="context", filename="context_pack.md", status=STATUS_PRESENT,
         hash=hash_text(content), content=content,
     )
 
 
-def _memory_artifact(task: TaskSpec, workspace_path: Path) -> SupportArtifact:
-    content = build_memory(task, workspace_path)
+def _memory_artifact(task: TaskSpec, workspace_path: Path, reader=None) -> SupportArtifact:
+    content = build_memory(task, workspace_path, reader=reader)
     return SupportArtifact(
         layer="memory", filename="repo_memory.md", status=STATUS_PRESENT,
         hash=hash_text(content), content=content,
@@ -176,17 +176,19 @@ class SupportBundle:
 
 
 def build_bundle(
-    task: TaskSpec, condition_id: str, workspace_path: Path, helper_artifact=None
+    task: TaskSpec, condition_id: str, workspace_path: Path, helper_artifact=None,
+    reader=None,
 ) -> SupportBundle:
     """Generate the frozen support bundle for a condition (before the agent runs).
 
     ``helper_artifact`` is an optional pre-generated, validated C2 helper (EP-03);
-    when present and valid it populates the tests layer for C2/C6.
+    when present and valid it populates the tests layer for C2/C6. ``reader`` is an
+    optional container reader so C1/C5 read the repo inside the instance image.
     """
     cond = get_condition(condition_id)
     artifacts: list[SupportArtifact] = []
     if cond.context:
-        artifacts.append(_context_artifact(task, workspace_path))
+        artifacts.append(_context_artifact(task, workspace_path, reader=reader))
     if cond.tests:
         artifacts.append(_tests_artifact(helper_artifact))
     if cond.gates:
@@ -194,7 +196,7 @@ def build_bundle(
     if cond.harness:
         artifacts.append(_harness_policy_artifact())
     if cond.memory:
-        artifacts.append(_memory_artifact(task, workspace_path))
+        artifacts.append(_memory_artifact(task, workspace_path, reader=reader))
     bundle = SupportBundle(task.task_id, condition_id, artifacts)
     bundle.validate_against_condition(cond)
     return bundle

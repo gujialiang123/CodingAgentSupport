@@ -77,6 +77,18 @@ def build_system_prompt(
             parts.append("\n" + bundle.artifact("memory").content)
         else:
             parts.append("\n" + build_memory(task, workspace_path))
+    if condition.tests and bundle is not None:
+        tests_art = bundle.artifact("tests")
+        if tests_art is not None and tests_art.status == "present" and tests_art.content:
+            parts.append(
+                "\n## Reproduction test (helper)\n"
+                "A reproduction test for this issue is available at "
+                "`se_support_helper_test.py` in the repo root. Run it with "
+                "`python -m pytest se_support_helper_test.py` to check your fix. "
+                "It should FAIL before your fix and PASS after. It is a helper, "
+                "not the grader; do not edit it.\n\n```python\n"
+                + tests_art.content + "\n```"
+            )
     if condition.harness:
         parts.append(_HARNESS_RULES)
 

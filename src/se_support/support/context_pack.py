@@ -16,15 +16,18 @@ _SKIP_DIRS = {".git", "__pycache__", ".pytest_cache", ".ruff_cache", "node_modul
 _MAX_FILES = 60
 
 
-def build_context_pack(task: TaskSpec, workspace_path: Path) -> str:
+def build_context_pack(task: TaskSpec, workspace_path: Path, reader=None) -> str:
     files: list[str] = []
-    for p in sorted(workspace_path.rglob("*")):
-        if any(part in _SKIP_DIRS for part in p.parts):
-            continue
-        if p.is_file():
-            files.append(str(p.relative_to(workspace_path)))
-        if len(files) >= _MAX_FILES:
-            break
+    if reader is not None and hasattr(reader, "list_repo_files"):
+        files = reader.list_repo_files(_MAX_FILES)
+    else:
+        for p in sorted(workspace_path.rglob("*")):
+            if any(part in _SKIP_DIRS for part in p.parts):
+                continue
+            if p.is_file():
+                files.append(str(p.relative_to(workspace_path)))
+            if len(files) >= _MAX_FILES:
+                break
 
     lines = ["## Repository context (auto-generated)", ""]
     lines.append(f"Repository: {task.repo}")

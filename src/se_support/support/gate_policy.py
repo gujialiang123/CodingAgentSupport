@@ -55,36 +55,48 @@ class GatePolicy:
 
 
 # -- individual gate runners: return (passed, warning_count, preview) ---------
-def _run(argv: list[str], cwd: Path) -> subprocess.CompletedProcess:
-    return subprocess.run(argv, cwd=cwd, capture_output=True, text=True)
-
-
-def _gate_compileall(cwd: Path) -> tuple[bool, int, str]:
-    p = _run(["python", "-m", "compileall", "-q", "."], cwd)
-    return (p.returncode == 0, 0 if p.returncode == 0 else 1, (p.stdout + p.stderr)[:500])
-
-
-def _gate_ruff(cwd: Path) -> tuple[bool, int, str]:
-    import shutil
-
-    if not shutil.which("ruff"):
-        return (True, -1, "ruff unavailable")
-    p = _run(["ruff", "check", "--output-format=json", "."], cwd)
+def _run(argv: list[str], cwd: Path) -> tuple[int, str]:
     try:
-        n = len(json.loads(p.stdout or "[]"))
+        p = subprocess.run(argv, cwd=cwd, capture_output=True, text=True)
+    except FileNotFoundError:
+        return 127, "not found"
+    return p.returncode, (p.stdout + p.stderr)
+
+
+# An executor runs an argv list and returns (returncode, combined_output). The
+# default runs on the host; a container workspace injects one that execs inside
+# the instance image (so C3 gates run where the repo's deps live).
+ExecFn = "callable"
+
+
+def _host_exec(cwd: Path):
+    def run(argv: list[str]) -> tuple[int, str]:
+        return _run(argv, cwd)
+    return run
+
+
+def _gate_compileall(exec_fn) -> tuple[bool, int, str]:
+    code, out = exec_fn(["python", "-m", "compileall", "-q", "."])
+    return (code == 0, 0 if code == 0 else 1, out[:500])
+
+
+def _gate_ruff(exec_fn) -> tuple[bool, int, str]:
+    code, out = exec_fn(["ruff", "check", "--output-format=json", "."])
+    if "not found" in out.lower() or "no such file" in out.lower():
+        return (True, -1, "ruff unavailable")
+    try:
+        n = len(json.loads(out or "[]"))
     except json.JSONDecodeError:
         n = -1
-    return (True, n, (p.stdout or p.stderr)[:500])
+    return (True, n, out[:500])
 
 
-def _gate_bandit(cwd: Path) -> tuple[bool, int, str]:
-    import shutil
-
-    if not shutil.which("bandit"):
+def _gate_bandit(exec_fn) -> tuple[bool, int, str]:
+    code, out = exec_fn(["bandit", "-q", "-r", "-f", "json", "."])
+    if "not found" in out.lower() or "no such file" in out.lower():
         return (True, -1, "bandit unavailable")
-    p = _run(["bandit", "-q", "-r", "-f", "json", "."], cwd)
     try:
-        n = len(json.loads(p.stdout or "{}").get("results", []))
+        n = len(json.loads(out or "{}").get("results", []))
     except json.JSONDecodeError:
         n = -1
     return (True, n, "")
@@ -115,13 +127,16 @@ class GateResult:
         }
 
 
-def compute_baseline(workspace_path: Path, policy: GatePolicy | None = None) -> dict[str, int]:
+def compute_baseline(
+    workspace_path: Path, policy: GatePolicy | None = None, exec_fn=None
+) -> dict[str, int]:
     """Advisory warning counts on the BASE tree (call before the agent edits)."""
     policy = policy or GatePolicy()
+    exec_fn = exec_fn or _host_exec(Path(workspace_path))
     baseline: dict[str, int] = {}
     for g in policy.gates:
         if g.kind == "advisory":
-            _, count, _ = _RUNNERS[g.runner](Path(workspace_path))
+            _, count, _ = _RUNNERS[g.runner](exec_fn)
             baseline[g.name] = count
     return baseline
 
@@ -130,13 +145,15 @@ def run_policy(
     workspace_path: Path,
     baseline: dict[str, int] | None = None,
     policy: GatePolicy | None = None,
+    exec_fn=None,
 ) -> list[GateResult]:
     """Run the gate policy on the patched tree; advisory gates report delta."""
     policy = policy or GatePolicy()
     baseline = baseline or {}
+    exec_fn = exec_fn or _host_exec(Path(workspace_path))
     results: list[GateResult] = []
     for g in policy.gates:
-        passed, count, preview = _RUNNERS[g.runner](Path(workspace_path))
+        passed, count, preview = _RUNNERS[g.runner](exec_fn)
         if g.kind == "blocking":
             results.append(GateResult(
                 g.name, g.kind, passed, count, None,
