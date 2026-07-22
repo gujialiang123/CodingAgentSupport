@@ -40,6 +40,11 @@ CONDITIONS: dict[str, SupportCondition] = {
     "C6_full_stack": SupportCondition(
         "C6_full_stack", context=True, tests=True, gates=True, harness=True, memory=True
     ),
+    # Diagnostic condition (Exp 009A): full stack WITHOUT the enforced harness,
+    # to isolate whether C6's deficit is driven by the C4 state machine overhead.
+    "C6_minus_C4": SupportCondition(
+        "C6_minus_C4", context=True, tests=True, gates=True, harness=False, memory=True
+    ),
 }
 
 
