@@ -65,12 +65,26 @@ C6−C4     seed0:7/12  seed1:7/12  seed2:7/12
    resolution is much higher than the bare-clone Exp 007/008 (C0 .61 vs .42),
    confirming P1's value.
 
-## 5. Pending: C6 @ 50 turns
+## 5. C6 @ 50 turns — RESULT
 
-Running (`exp009a_c6t50`). Decision rule (plan P3):
-- C6@50 recovers → the deficit is *partly* a budget ceiling too;
-- C6@50 still low + high timeout → more turns won't help; the harness protocol
-  itself must be redesigned (the 25-turn evidence already points here).
+Completed (`exp009a_c6t50`, 12 tasks × 3 seeds = 36 runs, in-container).
+
+| Condition | n | Resolved | Timeout | Mean turns |
+|-----------|---|----------|---------|------------|
+| C6 @ 25 turns | 36 | **0.39** | 67% | 23.0 |
+| C6 @ 50 turns | 36 | **0.39** | 28% | 32.9 |
+
+**Verdict: budget is NOT the driver.** Doubling the turn budget (25→50) left
+resolution flat at **0.39** while cutting the timeout rate from 67% → 28%. In
+other words, the extra turns only let the agent *stop timing out* — they convert
+timeouts into **submitted-but-wrong** patches, not into correct ones. The
+harness protocol churn consumes the added budget without producing correctness.
+
+This matches decision rule (b) from plan P3: *C6@50 still low + timeout falls but
+resolution does not recover → more turns won't help; the enforced harness
+protocol itself must be redesigned.* Combined with C6−C4 recovering to 0.58 at
+the **same** 25-turn budget, the harness — not the budget — is unambiguously the
+bottleneck.
 
 ## 6. Caveats
 
@@ -84,7 +98,10 @@ Running (`exp009a_c6t50`). Decision rule (plan P3):
 ## 7. Implication for the study
 
 C4 (enforced harness) as currently implemented **trades correctness for process
-compliance** under a fixed turn budget for this model. Options: (a) make the
-harness cheaper (fewer mandatory turns / allow batching records+edits), (b) give
-C4/C6 a larger budget, or (c) treat harness as advisory. This is a concrete,
-data-backed design finding for the main study.
+compliance** under a fixed turn budget for this model, and — per §5 — **more
+budget does not buy the correctness back** (it only trades timeouts for wrong
+submissions). Options: (a) make the harness cheaper (fewer mandatory turns /
+allow batching records+edits), or (b) treat harness as advisory rather than
+enforced. Simply raising the budget (previously option (b)) is now **ruled out**
+by the C6@50 result. This is a concrete, data-backed design finding for the main
+study.
