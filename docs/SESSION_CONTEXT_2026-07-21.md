@@ -63,8 +63,25 @@ runs to a bigger-GPU machine.
 qwen3.7-plus, 5 `psf/requests` tasks, C0–C6 (35 runs), sandbox on, Docker eval:
 resolution by condition — C0 3/5, C1 3/5, C2 4/5, C3 2/5, C4 4/5, C5 4/5, C6 2/5.
 Directional signal (n=5, no stats): single supports (C2/C4/C5) tend to beat C0;
-C6 full-stack was worst under the tight 15-turn budget (over-constrained). To be
-re-tested at scale with larger budgets and in-container C2 helper validation.
+C6 full-stack was worst under the tight 15-turn budget (over-constrained).
+
+## Experiment 008 headline (see `docs/experiments/008_*`)
+
+Scaled to **12 tasks × 5 repos** (requests/pytest/pylint/flask/xarray) × C0–C6 =
+84 runs, **turn budget raised 15→25**, concurrent scheduler (6 workers), EP-10
+analysis. Resolution rate: C0 .42, C1 .50, C2 .67, C3 .58, C4 .58, C5 .67, C6 .33.
+**Two independent pilots now agree:** every single support ≥ C0 (C2/C5 top, +0.25),
+and **full-stack C6 is worst** — and a bigger budget did NOT rescue it, so the
+deficit is a real interaction effect, not a budget artifact. n=12 → directional
+only (all McNemar p>.05, expected). This is the main study's key hypothesis.
+
+## Post-session build additions
+
+- EP-09 scheduler gained `--max-workers` concurrency (needed for slow API models).
+- EP-10 analysis package built (`analysis/aggregate.py` + `scripts/analyze.py`):
+  resolution-by-condition, paired McNemar (exact), bootstrap CIs.
+- Fairness fixes for weak models (no-network disclosure, non-interactive edits,
+  forgiving harness forward-transitions).
 
 ## Open items for the bigger-GPU / scale session
 
