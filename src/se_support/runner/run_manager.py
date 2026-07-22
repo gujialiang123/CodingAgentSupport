@@ -142,14 +142,25 @@ def _run_body(
     sandbox_policy, dataset_name, docker_python_exe, docker_env,
 ) -> RunOutcome:
     # A1/EP-03: generate the C2 helper (pre-run generator zone) for C2/C6.
+    # In container mode, validate the helper inside the instance container (P2)
+    # so fail-before/pass-after actually execute (deps present).
     helper_artifact = None
     if cond.tests and generator_client is not None:
         try:
-            from se_support.support.repro_tests.pregen import generate_helper_for_task
+            if use_container:
+                from se_support.support.repro_tests.pregen_container import (
+                    generate_helper_in_container,
+                )
 
-            helper_artifact = generate_helper_for_task(
-                task, generator_client, rd.path / "gen_zone", generator_model=model
-            )
+                helper_artifact = generate_helper_in_container(
+                    task, generator_client, env=docker_env, generator_model=model
+                )
+            else:
+                from se_support.support.repro_tests.pregen import generate_helper_for_task
+
+                helper_artifact = generate_helper_for_task(
+                    task, generator_client, rd.path / "gen_zone", generator_model=model
+                )
             rd.write_json("support/helper_artifact.json", helper_artifact.model_dump())
         except Exception as exc:  # noqa: BLE001 - record, do not crash the run
             rd.write_json("support/helper_artifact_error.json", {"error": repr(exc)})

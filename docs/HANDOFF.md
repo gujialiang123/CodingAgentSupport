@@ -73,14 +73,14 @@ The scheduler skips already-completed cells, so interrupted runs resume safely.
 
 ## 5. Known limitations to address before publication-grade runs
 
-1. **C2 helper validation needs the task runtime env.** A bare git clone lacks the
-   repo's dependencies, so fail-before/pass-after classification often yields T0
-   for real repos. Fix: run helper validation inside the task's SWE-bench Docker
-   image (the image has deps). The generation + provenance/leakage audit + freeze
-   already work; only the base/gold *execution* needs the container.
-2. **Agent runs in a bare clone, not the task container.** The agent can edit files
-   but cannot run the repo's real tests/deps. Consider running the agent phase
-   inside the instance image for iterative test-driven behavior.
+1. ✅ **RESOLVED (P1).** The agent now runs **inside the SWE-bench instance
+   container** (`--in-container`): `/testbed` with deps installed, `--network none`.
+   It can run the repo's real tests, C3 gates, and the C2 helper. Use
+   `--in-container` on the driver for publication-grade runs.
+2. ✅ **RESOLVED (P2).** C2 helper validation now runs **inside base/gold
+   containers**, so fail-before/pass-after actually execute — helpers reach
+   T3/T4 (verified on psf__requests-2931: fail_before=True, pass_after_gold=True).
+   Only T3/T4 helpers are injected; T0–T2 are recorded (not dropped).
 3. **C1/C5 are weak v1** (file map / generic recipes). EP-05/EP-06 strengthen them.
 4. **Enforced harness (C4) can hurt weak models.** In Experiment 006 the 7B timed
    out under C6, spending its turn budget on the state protocol instead of coding,
