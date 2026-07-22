@@ -139,3 +139,29 @@ def test_build_helper_non_reproducing_is_t1(tmp_path):
         base_workspace=_base_ws(tmp_path), gold_workspace=_gold_ws(tmp_path), k=3,
     )
     assert art.classification == ReproTestClass.T1_non_reproducing
+
+
+def test_load_frozen_helper_loads_t3_and_skips_others(tmp_path):
+    # P4: run_manager loads only confirmatory (T3/T4) frozen helpers.
+    from se_support.runner.run_manager import _load_frozen_helper
+    from se_support.schemas import TaskSpec
+
+    task = TaskSpec(task_id="repo__x-1", dataset="swebench_verified",
+                    repo="r/x", base_commit="abc")
+    assert _load_frozen_helper(task, None) is None            # no cache dir
+    assert _load_frozen_helper(task, tmp_path) is None        # no file
+
+    t3 = HelperTestArtifact(
+        task_id="repo__x-1", test_source="def test_x():\n    assert False\n",
+        classification=ReproTestClass.T3_valid_reproduction,
+    )
+    (tmp_path / "repo__x-1.json").write_text(t3.model_dump_json(), encoding="utf-8")
+    loaded = _load_frozen_helper(task, tmp_path)
+    assert loaded is not None and loaded.test_source
+
+    t1 = HelperTestArtifact(
+        task_id="repo__x-1", test_source="def test_x():\n    assert True\n",
+        classification=ReproTestClass.T1_non_reproducing,
+    )
+    (tmp_path / "repo__x-1.json").write_text(t1.model_dump_json(), encoding="utf-8")
+    assert _load_frozen_helper(task, tmp_path) is None        # non-confirmatory skipped

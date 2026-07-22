@@ -46,6 +46,9 @@ def main() -> int:
                     help="Concurrent cells (safe for API models; each cell isolated).")
     ap.add_argument("--swebench-python", default="/home/jgu7/miniconda3/envs/swebench/bin/python")
     ap.add_argument("--dataset-name", default="SWE-bench/SWE-bench_Verified")
+    ap.add_argument("--helper-cache-dir", default=None,
+                    help="Dir of pre-frozen container-validated C2 helpers "
+                         "(<task_id>.json); reused read-only for C2/C2+C3 (P4).")
     args = ap.parse_args()
 
     tasks = load_tasks(Path(args.tasks))
@@ -71,6 +74,7 @@ def main() -> int:
         dataset_name=args.dataset_name,
         results_path=Path(args.results) if args.results else None,
         max_workers=args.max_workers, in_container=args.in_container,
+        helper_cache_dir=Path(args.helper_cache_dir) if args.helper_cache_dir else None,
     )
     return 0
 

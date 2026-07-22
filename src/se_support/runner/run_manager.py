@@ -69,6 +69,7 @@ def run_single(
     generator_client=None,
     in_container: bool = False,
     namespace: str = "swebench",
+    helper_cache_dir: Path | None = None,
 ) -> RunOutcome:
     """Execute one run end-to-end.
 
@@ -130,6 +131,7 @@ def run_single(
             task, agent, condition, cond, run_id, rd, mode, use_container,
             agent_ws, container, reader, generator_client, model,
             sandbox_policy, dataset_name, docker_python_exe, docker_env,
+            helper_cache_dir,
         )
     finally:
         if container is not None:
@@ -140,6 +142,7 @@ def _run_body(
     task, agent, condition, cond, run_id, rd, mode, use_container,
     agent_ws, container, reader, generator_client, model,
     sandbox_policy, dataset_name, docker_python_exe, docker_env,
+    helper_cache_dir=None,
 ) -> RunOutcome:
     # A1/EP-03: generate the C2 helper (pre-run generator zone) for C2/C6.
     # In container mode, validate the helper inside the instance container (P2)
@@ -147,7 +150,14 @@ def _run_body(
     helper_artifact = None
     if cond.tests and generator_client is not None:
         try:
-            if use_container:
+            # P4: prefer a pre-frozen, container-validated helper if one exists in
+            # the helper cache. This makes C2/C2+C3 deterministic and cheap (no
+            # per-run regeneration) and guarantees the T3/T4 helper the cohort was
+            # selected on is the exact one the agent sees.
+            cached = _load_frozen_helper(task, helper_cache_dir)
+            if cached is not None:
+                helper_artifact = cached
+            elif use_container:
                 from se_support.support.repro_tests.pregen_container import (
                     generate_helper_in_container,
                 )
@@ -301,6 +311,33 @@ def _write_manipulation_check(run_id, condition, cond, bundle, sandbox_policy, r
         passed=passed,
     )
     rd.write_model("manipulation.json", mc)
+
+
+def _load_frozen_helper(task: TaskSpec, cache_dir: Path | None):
+    """Load a pre-frozen, container-validated C2 helper for ``task`` if present.
+
+    P4: helpers are frozen once (scripts/freeze_helpers.py) and reused read-only,
+    so C2/C2+C3 runs are deterministic and don't burn generator API budget. Only
+    confirmatory (T3/T4) helpers are loaded; anything else falls back to
+    per-run generation. Returns ``None`` when no usable cached helper exists.
+    """
+    if cache_dir is None:
+        return None
+    path = Path(cache_dir) / f"{task.task_id}.json"
+    if not path.exists():
+        return None
+    from se_support.support.repro_tests.schema import (
+        CONFIRMATORY_CLASSES,
+        HelperTestArtifact,
+        ReproTestClass,
+    )
+
+    artifact = HelperTestArtifact.model_validate_json(path.read_text(encoding="utf-8"))
+    if ReproTestClass(artifact.classification) not in CONFIRMATORY_CLASSES:
+        return None
+    if not artifact.test_source:
+        return None
+    return artifact
 
 
 def _resolve_mode(task: TaskSpec, evaluator: str) -> str:

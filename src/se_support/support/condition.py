@@ -45,6 +45,10 @@ CONDITIONS: dict[str, SupportCondition] = {
     "C6_minus_C4": SupportCondition(
         "C6_minus_C4", context=True, tests=True, gates=True, harness=False, memory=True
     ),
+    # P4 (Exp 010): C2xC3 2x2 cell -- helper tests AND gates together, no other
+    # supports. Completes the {no-helper,helper} x {no-gates,gates} grid alongside
+    # C0_minimal, C2_tests, C3_gates.
+    "C2_C3": SupportCondition("C2_C3", tests=True, gates=True),
 }
 
 
