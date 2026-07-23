@@ -116,3 +116,34 @@ python -m se_support import swebench-verified --output data/tasks/all500.jsonl
 - Pre-pull the 12 instance images first (avoids concurrent-pull storms).
 - Diagnosis logic (plan P3): C6@50 recovers → budget; C6_minus_C4@25 recovers →
   harness overhead; neither → real negative interaction; seeds flip → noise.
+- **009A result:** C0 .61, C4 .56, C6 .39, C6−C4 .58 @25 turns (timeout C0/C6−C4
+  22%, C4 58%, C6 67%); C6@50 .39 (timeout 28%). **Harness (C4) is C6's deficit
+  driver; more budget does not recover resolution.** See `docs/experiments/009A_*`.
+
+### Freezing supports (P2 helpers / P5 repo memory)
+Frozen once, reused read-only so C2/C5 are deterministic and leak-free.
+```bash
+# C2 helpers (container-validated, classify T0-T4; only T3/T4 are usable):
+python scripts/freeze_helpers.py --tasks data/tasks/ablation12.jsonl \
+    --out data/helpers --model qwen3.7-plus \
+    --base-url https://api.302.ai/v1 --api-key <KEY> --k 3
+# -> data/helpers/<task_id>.json + _manifest.json. ablation12: 7/12 (58%) T3/T4.
+
+# C5 per-repo memory (repo-scoped, task-free, frozen before eval):
+python scripts/freeze_repo_memory.py --tasks data/tasks/ablation12.jsonl \
+    --out data/repo_memory
+# -> data/repo_memory/<repo_slug>.md
+```
+
+### Exp 010 — C2 × C3 2×2 (helper tests × gates), in-container, frozen helpers
+- **Cohort:** `data/tasks/ablation_t34.jsonl` (7 tasks with T3/T4 helpers).
+- **Conditions:** C0_minimal, C2_tests, C3_gates, C2_C3. **3 seeds**, 25 turns.
+- **84 runs** (`exp010_c2xc3`); helpers loaded from `--helper-cache-dir data/helpers`.
+  ```bash
+  python scripts/run_feasibility.py --tasks data/tasks/ablation_t34.jsonl \
+    --conditions C0_minimal C2_tests C3_gates C2_C3 \
+    --model qwen3.7-plus --base-url https://api.302.ai/v1 --api-key <KEY> \
+    --max-tokens 4096 --max-turns 25 --seeds 0 1 2 --in-container \
+    --helper-cache-dir data/helpers --max-workers 4 \
+    --experiment-id exp010_c2xc3 --output runs/exp010_c2xc3 --results results/exp010_c2xc3.jsonl
+  ```

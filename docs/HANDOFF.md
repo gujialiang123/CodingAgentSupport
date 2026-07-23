@@ -81,12 +81,20 @@ The scheduler skips already-completed cells, so interrupted runs resume safely.
    containers**, so fail-before/pass-after actually execute — helpers reach
    T3/T4 (verified on psf__requests-2931: fail_before=True, pass_after_gold=True).
    Only T3/T4 helpers are injected; T0–T2 are recorded (not dropped).
-3. **C1/C5 are weak v1** (file map / generic recipes). EP-05/EP-06 strengthen them.
-4. **Enforced harness (C4) can hurt weak models.** In Experiment 006 the 7B timed
-   out under C6, spending its turn budget on the state protocol instead of coding,
-   while C0 produced the only applying patch. Re-check with the capable model
-   (the harness is expected to help there); consider a higher turn budget and/or a
-   more forgiving protocol for weaker models.
+3. ✅ **RESOLVED (P5, C1+C5).** C1 is now **issue-based retrieval** (v2):
+   symbol/lexical scoring of repo files, top-k snippets with `path:line`
+   provenance, related tests, fixed token budget, plus a `C1_random` same-budget
+   control. C5 is now **repository-scoped frozen memory** (v2): durable repo
+   knowledge only, no task leakage, frozen once via `scripts/freeze_repo_memory.py`
+   (`--memory-cache-dir`). **C3 v2 (repo-native targeted-test gate) is the last
+   remaining P5 item** — deferred until after Exp 010 to keep a clean protocol
+   boundary; it will also move basic install/run-tests *operational access* to a
+   shared baseline for ALL conditions so C5 measures memory, not access.
+4. ✅ **DIAGNOSED (Exp 009A).** The enforced harness (C4) — not the turn budget —
+   drives C6's deficit for this model. C6−C4 recovers resolution (0.39→0.58) at
+   25 turns; doubling the budget (C6@50) does NOT recover resolution (0.39), only
+   converts timeouts to submitted-but-wrong patches. Harness needs redesign, not
+   more turns (see `docs/experiments/009A_budget_diagnosis.md`).
 5. **Analysis package (EP-10) not built**: McNemar/bootstrap paired tables,
    quality-among-resolved, annotation sampler. Needed to produce paper tables.
 5. **Human annotation (E4)** needs annotators (codebook + double-coding + kappa).
