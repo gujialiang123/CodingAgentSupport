@@ -49,6 +49,9 @@ def main() -> int:
     ap.add_argument("--helper-cache-dir", default=None,
                     help="Dir of pre-frozen container-validated C2 helpers "
                          "(<task_id>.json); reused read-only for C2/C2+C3 (P4).")
+    ap.add_argument("--memory-cache-dir", default=None,
+                    help="Dir of pre-frozen per-repo C5 memory (<repo>.md); "
+                         "reused read-only for C5/C6 (P5).")
     args = ap.parse_args()
 
     tasks = load_tasks(Path(args.tasks))
@@ -75,6 +78,7 @@ def main() -> int:
         results_path=Path(args.results) if args.results else None,
         max_workers=args.max_workers, in_container=args.in_container,
         helper_cache_dir=Path(args.helper_cache_dir) if args.helper_cache_dir else None,
+        memory_cache_dir=Path(args.memory_cache_dir) if args.memory_cache_dir else None,
     )
     return 0
 

@@ -70,6 +70,7 @@ def run_single(
     in_container: bool = False,
     namespace: str = "swebench",
     helper_cache_dir: Path | None = None,
+    memory_cache_dir: Path | None = None,
 ) -> RunOutcome:
     """Execute one run end-to-end.
 
@@ -131,7 +132,7 @@ def run_single(
             task, agent, condition, cond, run_id, rd, mode, use_container,
             agent_ws, container, reader, generator_client, model,
             sandbox_policy, dataset_name, docker_python_exe, docker_env,
-            helper_cache_dir,
+            helper_cache_dir, memory_cache_dir,
         )
     finally:
         if container is not None:
@@ -143,6 +144,7 @@ def _run_body(
     agent_ws, container, reader, generator_client, model,
     sandbox_policy, dataset_name, docker_python_exe, docker_env,
     helper_cache_dir=None,
+    memory_cache_dir=None,
 ) -> RunOutcome:
     # A1/EP-03: generate the C2 helper (pre-run generator zone) for C2/C6.
     # In container mode, validate the helper inside the instance container (P2)
@@ -179,7 +181,8 @@ def _run_body(
     from se_support.support import build_bundle
 
     bundle = build_bundle(
-        task, condition, agent_ws.path, helper_artifact=helper_artifact, reader=reader
+        task, condition, agent_ws.path, helper_artifact=helper_artifact,
+        reader=reader, memory_cache_dir=memory_cache_dir,
     )
     bundle.write(rd.path / "support")
     if hasattr(agent, "support_bundle"):

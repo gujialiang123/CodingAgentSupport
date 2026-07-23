@@ -105,8 +105,10 @@ def _context_artifact(
     )
 
 
-def _memory_artifact(task: TaskSpec, workspace_path: Path, reader=None) -> SupportArtifact:
-    content = build_memory(task, workspace_path, reader=reader)
+def _memory_artifact(
+    task: TaskSpec, workspace_path: Path, reader=None, cache_dir: Path | None = None
+) -> SupportArtifact:
+    content = build_memory(task, workspace_path, reader=reader, cache_dir=cache_dir)
     return SupportArtifact(
         layer="memory", filename="repo_memory.md", status=STATUS_PRESENT,
         hash=hash_text(content), content=content,
@@ -188,13 +190,14 @@ class SupportBundle:
 
 def build_bundle(
     task: TaskSpec, condition_id: str, workspace_path: Path, helper_artifact=None,
-    reader=None,
+    reader=None, memory_cache_dir: Path | None = None,
 ) -> SupportBundle:
     """Generate the frozen support bundle for a condition (before the agent runs).
 
     ``helper_artifact`` is an optional pre-generated, validated C2 helper (EP-03);
     when present and valid it populates the tests layer for C2/C6. ``reader`` is an
     optional container reader so C1/C5 read the repo inside the instance image.
+    ``memory_cache_dir`` points at frozen per-repo C5 memory (P5).
     """
     cond = get_condition(condition_id)
     artifacts: list[SupportArtifact] = []
@@ -210,7 +213,10 @@ def build_bundle(
     if cond.harness:
         artifacts.append(_harness_policy_artifact())
     if cond.memory:
-        artifacts.append(_memory_artifact(task, workspace_path, reader=reader))
+        artifacts.append(
+            _memory_artifact(task, workspace_path, reader=reader,
+                             cache_dir=memory_cache_dir)
+        )
     bundle = SupportBundle(task.task_id, condition_id, artifacts)
     bundle.validate_against_condition(cond)
     return bundle

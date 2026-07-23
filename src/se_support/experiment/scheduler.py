@@ -73,6 +73,7 @@ def run_experiment(
     max_workers: int = 1,
     in_container: bool = False,
     helper_cache_dir: Path | None = None,
+    memory_cache_dir: Path | None = None,
 ) -> list[dict]:
     """Run the full schedule and return per-cell result rows.
 
@@ -105,6 +106,7 @@ def run_experiment(
                     docker_python_exe=docker_python_exe, docker_env=docker_env,
                     dataset_name=dataset_name, in_container=in_container,
                     helper_cache_dir=helper_cache_dir,
+                    memory_cache_dir=memory_cache_dir,
                 )
                 return _row_from_outcome(cell, outcome)
             except Exception as exc:  # noqa: BLE001 - infra retry / record
