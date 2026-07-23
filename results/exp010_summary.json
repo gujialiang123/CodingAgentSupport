@@ -1,0 +1,26 @@
+{
+  "C0_minimal": {
+    "n": 21,
+    "p2p_regression": "4/14",
+    "resolution_rate": 0.381,
+    "resolved": 8
+  },
+  "C2_C3": {
+    "n": 21,
+    "p2p_regression": "2/15",
+    "resolution_rate": 0.524,
+    "resolved": 11
+  },
+  "C2_tests": {
+    "n": 21,
+    "p2p_regression": "3/15",
+    "resolution_rate": 0.524,
+    "resolved": 11
+  },
+  "C3_gates": {
+    "n": 21,
+    "p2p_regression": "4/15",
+    "resolution_rate": 0.524,
+    "resolved": 11
+  }
+}

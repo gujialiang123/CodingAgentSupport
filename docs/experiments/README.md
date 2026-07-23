@@ -27,4 +27,4 @@ machine artifacts under `runs/` and `results/`.
 | 007 | ablation01 | Full C0–C6 ablation with qwen3.7-plus (302.ai) | done |
 | 008 | ablation02 | Scaled C0–C6 ablation (12 tasks × 5 repos) | done |
 | 009A | exp009a_t25 | Full-stack budget & orchestration diagnosis | DONE — harness (C4) is C6's deficit driver; budget (C6@50) does not recover resolution |
-| 010 | exp010_c2xc3 | C2×C3 2×2 (helper tests × gates) on 7 T3/T4 tasks, 3 seeds, frozen helpers | RUNNING (84 runs) |
+| 010 | exp010_c2xc3 | C2×C3 2×2 (helper tests × gates) on 7 T3/T4 tasks, 3 seeds, frozen helpers | DONE — C2 & C3 each lift resolution 0.38→0.52; no stacking on resolution; C2_C3 lowest P2P regression (safety benefit) |
