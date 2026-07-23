@@ -63,3 +63,83 @@ def test_advisory_delta_excludes_legacy_warnings(tmp_path):
 def test_advisory_never_blocks():
     r = GateResult("ruff", "advisory", True, 5, 2, "advisory")
     assert blocking_failures([r]) == []
+
+
+# -- C3 v2 (plan P5) ----------------------------------------------------------
+from se_support.support.gate_policy import (  # noqa: E402
+    detect_configured_tools,
+    run_policy_v2,
+)
+
+
+class _FakeExec:
+    """Scriptable exec_fn: maps an argv-substring to (returncode, output)."""
+
+    def __init__(self, rules, default=(0, "")):
+        self.rules = rules
+        self.default = default
+        self.calls = []
+
+    def __call__(self, argv):
+        self.calls.append(argv)
+        joined = " ".join(argv)
+        for needle, resp in self.rules.items():
+            if needle in joined:
+                return resp
+        return self.default
+
+
+def test_detect_configured_tools_reads_repo_config():
+    ex = _FakeExec({
+        "cat pyproject.toml": (0, "[tool.ruff]\nline-length=99\n[tool.mypy]\n"),
+        "cat setup.cfg": (1, ""),
+    })
+    tools = detect_configured_tools(ex)
+    assert "ruff" in tools and "mypy" in tools
+
+
+def test_v2_skips_unconfigured_lint():
+    # No config -> ruff/flake8/mypy report "unavailable/not configured" (-1), pass.
+    ex = _FakeExec({"cat ": (1, "")})
+    results = run_policy_v2(".", changed_files=["pkg/mod.py"], exec_fn=ex)
+    by = {r.name: r for r in results}
+    assert by["ruff"].warning_count == -1
+    assert by["mypy"].warning_count == -1
+    # unconfigured advisory tools must never have been executed
+    assert not any(a[:1] == ["ruff"] for a in ex.calls)
+
+
+def test_v2_import_gate_blocks_on_bad_import():
+    ex = _FakeExec({
+        "cat ": (1, ""),
+        "python -c": (1, "ModuleNotFoundError: broken"),
+        "test -f": (1, ""),  # no repo-native test maps
+    })
+    results = run_policy_v2(".", changed_files=["pkg/mod.py"], exec_fn=ex)
+    by = {r.name: r for r in results}
+    assert by["import"].passed is False
+    assert by["import"].status == "fail"
+
+
+def test_v2_targeted_tests_run_only_existing():
+    ex = _FakeExec({
+        "cat ": (1, ""),
+        "python -c": (0, ""),
+        "test -f tests/test_mod.py": (0, ""),
+        "test -f": (1, ""),
+        "pytest": (0, "1 passed"),
+    })
+    results = run_policy_v2(".", changed_files=["pkg/mod.py"], exec_fn=ex)
+    by = {r.name: r for r in results}
+    assert by["targeted_tests"].passed is True
+    # pytest was invoked with the existing test target
+    assert any("pytest" in " ".join(a) and "tests/test_mod.py" in " ".join(a)
+               for a in ex.calls)
+
+
+def test_v2_no_tests_map_passes_trivially():
+    ex = _FakeExec({"cat ": (1, ""), "python -c": (0, ""), "test -f": (1, "")})
+    results = run_policy_v2(".", changed_files=["pkg/mod.py"], exec_fn=ex)
+    by = {r.name: r for r in results}
+    assert by["targeted_tests"].passed is True
+    assert "no repo-native tests" in by["targeted_tests"].preview
