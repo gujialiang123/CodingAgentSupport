@@ -114,9 +114,15 @@ def build_repo_memory(repo: str, workspace_path: Path, reader=None) -> str:
     for doc in _DOC_FILES:
         if _has(reader, workspace_path, doc):
             body = _read(reader, workspace_path, doc, 4000)
-            hints = [ln.strip("-* ").strip() for ln in body.splitlines()
-                     if re.search(r"\b(convention|style|guideline|must|please|do not|"
-                                  r"backward|compat|deprecat)\b", ln, re.I)]
+            hints = []
+            for ln in body.splitlines():
+                s = ln.strip("-*# ").strip()
+                if not s or s.startswith("..") or "img.shields" in s \
+                        or "image::" in s or "://" in s:
+                    continue  # skip RST directives / badges / bare URLs
+                if re.search(r"\b(convention|style|guideline|must|please|do not|"
+                             r"backward|compat|deprecat)\b", s, re.I):
+                    hints.append(s)
             if hints:
                 lines.append(f"### Notes distilled from {doc}")
                 for h in hints[:5]:
