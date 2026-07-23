@@ -44,6 +44,19 @@ def instance_image_name(instance_id: str, namespace: str = "swebench",
     return f"{namespace}/sweb.eval.{arch}.{enc}:latest"
 
 
+def _shell_grep_terms(terms: list[str]) -> list[str]:
+    """Sanitize + single-quote query terms for a ``git grep -F`` invocation."""
+    out: list[str] = []
+    seen: set[str] = set()
+    for t in terms:
+        t = "".join(c for c in t if c.isalnum() or c in "_.-")
+        if len(t) < 3 or t.lower() in seen:
+            continue
+        seen.add(t.lower())
+        out.append(f"'{t}'")
+    return out[:12]
+
+
 class ContainerWorkspace:
     def __init__(self, container_id: str, run_dir: RunDirectory | None,
                  env: dict, path: Path | None = None) -> None:
@@ -176,4 +189,23 @@ class ContainerWorkspace:
     def has_file(self, name: str) -> bool:
         proc = self._testbed(f"test -f {name} && echo yes || echo no")
         return "yes" in proc.stdout
+
+    def read_file(self, relpath: str, max_bytes: int = 20000) -> str:
+        """Read a repo file's text (C1 v2 retrieval). Empty string on error."""
+        safe = relpath.replace("'", "")
+        proc = self._testbed(f"head -c {max_bytes} '{safe}' 2>/dev/null")
+        return proc.stdout if proc.returncode == 0 else ""
+
+    def grep_files(self, terms: list[str], max_files: int = 40) -> list[str]:
+        """Repo files containing any of ``terms`` (fixed-string, case-insensitive).
+
+        One ``git grep`` call inside the container -> cheap. Returns relative paths.
+        """
+        pats = " ".join(f"-e {t}" for t in _shell_grep_terms(terms))
+        if not pats:
+            return []
+        proc = self._testbed(
+            f"git grep -l -I -F -i {pats} 2>/dev/null | head -n {max_files}"
+        )
+        return [x for x in proc.stdout.splitlines() if x.strip()]
 

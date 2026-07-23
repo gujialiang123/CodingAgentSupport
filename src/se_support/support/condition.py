@@ -49,6 +49,9 @@ CONDITIONS: dict[str, SupportCondition] = {
     # supports. Completes the {no-helper,helper} x {no-gates,gates} grid alongside
     # C0_minimal, C2_tests, C3_gates.
     "C2_C3": SupportCondition("C2_C3", tests=True, gates=True),
+    # P5: C1 v2 random-context control -- same token budget as C1 but randomly
+    # chosen snippets, to separate "more tokens" from "more relevant context".
+    "C1_random": SupportCondition("C1_random", context=True),
 }
 
 

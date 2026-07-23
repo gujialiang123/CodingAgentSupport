@@ -42,6 +42,7 @@ def test_condition_flags():
     assert set(CONDITIONS) == {
         "C0_minimal", "C1_context", "C2_tests", "C3_gates",
         "C4_harness", "C5_memory", "C6_full_stack", "C6_minus_C4", "C2_C3",
+        "C1_random",
     }
 
 

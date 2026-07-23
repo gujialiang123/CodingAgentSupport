@@ -33,7 +33,11 @@ from se_support.isolation.manifest import hash_text
 from se_support.schemas.base import SEModel
 from se_support.schemas.task_spec import TaskSpec
 from se_support.support.condition import SupportCondition, get_condition
-from se_support.support.context_pack import build_context_pack
+from se_support.support.context_pack import (
+    build_context_pack,
+    build_context_pack_v2,
+    build_random_context_pack,
+)
 from se_support.support.memory import build_memory
 
 LAYERS = ("context", "tests", "gates", "harness", "memory")
@@ -86,8 +90,15 @@ def _harness_policy_artifact() -> SupportArtifact:
     )
 
 
-def _context_artifact(task: TaskSpec, workspace_path: Path, reader=None) -> SupportArtifact:
-    content = build_context_pack(task, workspace_path, reader=reader)
+def _context_artifact(
+    task: TaskSpec, workspace_path: Path, reader=None, variant: str = "v2"
+) -> SupportArtifact:
+    if variant == "random":
+        content = build_random_context_pack(task, workspace_path, reader=reader)
+    elif variant == "v1":
+        content = build_context_pack(task, workspace_path, reader=reader)
+    else:
+        content = build_context_pack_v2(task, workspace_path, reader=reader)
     return SupportArtifact(
         layer="context", filename="context_pack.md", status=STATUS_PRESENT,
         hash=hash_text(content), content=content,
@@ -188,7 +199,10 @@ def build_bundle(
     cond = get_condition(condition_id)
     artifacts: list[SupportArtifact] = []
     if cond.context:
-        artifacts.append(_context_artifact(task, workspace_path, reader=reader))
+        variant = "random" if condition_id == "C1_random" else "v2"
+        artifacts.append(
+            _context_artifact(task, workspace_path, reader=reader, variant=variant)
+        )
     if cond.tests:
         artifacts.append(_tests_artifact(helper_artifact))
     if cond.gates:
