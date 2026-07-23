@@ -1,0 +1,19 @@
+{
+  "task_id": "swebench_verified__pylint-dev__pylint-4604",
+  "test_source": "import tempfile\nimport os\nimport io\nfrom pylint.lint import PyLinter\nfrom pylint.reporters.text import TextReporter\n\ndef test_unused_import_type_comment():\n    code = \"\"\"\\\"\\\"\\\"Docstring.\\\"\\\"\\\"\n\nimport abc\nfrom abc import ABC\n\nX = ...  # type: abc.ABC\nY = ...  # type: ABC\n\"\"\"\n    with tempfile.NamedTemporaryFile(\"w\", suffix=\".py\", delete=False) as f:\n        f.write(code)\n        f.flush()\n        fname = f.name\n\n    try:\n        linter = PyLinter()\n        linter.load_default_plugins()\n        \n        out = io.StringIO()\n        linter.set_reporter(TextReporter(out))\n        linter.check([fname])\n        output = out.getvalue()\n        \n        assert \"Unused import abc\" not in output, f\"False positive unused-import for abc:\\n{output}\"\n    finally:\n        os.unlink(fname)",
+  "run_command": "python -m pytest helper_test.py",
+  "generator_model": "qwen3.7-plus",
+  "prompt_hash": "sha256:062eecfc8c4f6ae7d67eb51bd23fd95d7c3277bc9369d9926c9d0a48e0b034f7",
+  "candidate_index": 0,
+  "frozen_hash": "sha256:8338ca2464588b8c8b61dc1d4484693de0898146345f3094b311b7c1bedfb1d8",
+  "collected": true,
+  "fail_before": true,
+  "pass_after_gold": true,
+  "classification": "T3_valid_reproduction",
+  "issue_provenance_ok": false,
+  "suspicious_literals": [
+    "False positive unused-import for abc:\n"
+  ],
+  "audit_passed": null,
+  "notes": ""
+}

@@ -1,0 +1,17 @@
+{
+  "task_id": "swebench_verified__psf__requests-2931",
+  "test_source": "import requests\n\ndef test_binary_payload():\n    payload = u\"ööö\".encode(\"utf-8\")\n    req = requests.Request('PUT', 'http://example.com/put', data=payload)\n    prepared = req.prepare()\n    assert prepared.body == payload",
+  "run_command": "python -m pytest helper_test.py",
+  "generator_model": "qwen3.7-plus",
+  "prompt_hash": "sha256:5b7738969d116229064d011345ab5036695c03da0ec0f2b44a90e442fa6c0b69",
+  "candidate_index": 0,
+  "frozen_hash": "sha256:dd6f38440904960654d827f8321c0be1ca84379a2be823bc1ad4d30dfa6de648",
+  "collected": true,
+  "fail_before": true,
+  "pass_after_gold": true,
+  "classification": "T3_valid_reproduction",
+  "issue_provenance_ok": false,
+  "suspicious_literals": [],
+  "audit_passed": null,
+  "notes": ""
+}

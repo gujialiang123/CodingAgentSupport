@@ -1,0 +1,20 @@
+{
+  "task_id": "swebench_verified__pylint-dev__pylint-4551",
+  "test_source": "import re\nimport sys\nimport pytest\nfrom pylint.pyreverse.main import Run\n\ndef test_pyreverse_type_hints(tmp_path):\n    code = \"\"\"\nclass C(object):\n    def __init__(self, a: str = None):\n        self.a = a\n\"\"\"\n    test_file = tmp_path / \"test_module.py\"\n    test_file.write_text(code)\n    \n    old_argv = sys.argv\n    sys.argv = ['pyreverse', '-o', 'dot', '-p', 'test', str(test_file)]\n    try:\n        Run(sys.argv[1:])\n    except SystemExit:\n        pass\n    finally:\n        sys.argv = old_argv\n        \n    dot_file = tmp_path / \"classes_test.dot\"\n    assert dot_file.exists(), \"pyreverse did not generate the expected dot file\"\n    content = dot_file.read_text()\n    \n    # The issue expects the type hint to be read, e.g., \"a : str\" or \"a : String\"\n    # and not default to \"None\" or have no type.\n    assert re.search(r'a\\s*:\\s*(str|String)', content), \\\n        f\"Expected type hint for 'a' to be 'str' or 'String', but got:\\n{content}\"",
+  "run_command": "python -m pytest helper_test.py",
+  "generator_model": "qwen3.7-plus",
+  "prompt_hash": "sha256:864101a0f7a472d1a8a8c7dfc2e094016ecf2f4e2ae30342fd6747ccc21f310d",
+  "candidate_index": 0,
+  "frozen_hash": "sha256:57ccc7cdc2e424021eafeb9e073c9e7c051c65ccee5d0f3f3ce49da8c4a43c4e",
+  "collected": true,
+  "fail_before": true,
+  "pass_after_gold": false,
+  "classification": "T2_incompatible_oracle",
+  "issue_provenance_ok": false,
+  "suspicious_literals": [
+    "pyreverse did not generate the expected dot file",
+    "Expected type hint for 'a' to be 'str' or 'String', but got:\n"
+  ],
+  "audit_passed": null,
+  "notes": ""
+}

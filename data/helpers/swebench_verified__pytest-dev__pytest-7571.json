@@ -1,0 +1,17 @@
+{
+  "task_id": "swebench_verified__pytest-dev__pytest-7571",
+  "test_source": "import textwrap\nimport pytest\n\ndef test_caplog_level_restored(tmp_path):\n    test_file = tmp_path / \"test_caplog_leak.py\"\n    test_file.write_text(textwrap.dedent(\"\"\"\n        def test_foo(caplog):\n            caplog.set_level(42)\n\n        def test_bar(caplog):\n            assert caplog.handler.level == 0\n    \"\"\"))\n    \n    exit_code = pytest.main([str(test_file)])\n    assert exit_code == 0",
+  "run_command": "python -m pytest helper_test.py",
+  "generator_model": "qwen3.7-plus",
+  "prompt_hash": "sha256:8d15e67aa2c042d3c8b7d55e6e60bab7ad1cb51310df98613eff8a3c492cf813",
+  "candidate_index": 0,
+  "frozen_hash": "sha256:65f07ab6b9497e9819b874f770f19bff52a3eee93a113f1ff57faa6fbb3abdb1",
+  "collected": true,
+  "fail_before": true,
+  "pass_after_gold": true,
+  "classification": "T4_decoupled_valid",
+  "issue_provenance_ok": true,
+  "suspicious_literals": [],
+  "audit_passed": null,
+  "notes": ""
+}

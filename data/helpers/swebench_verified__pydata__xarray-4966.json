@@ -1,0 +1,17 @@
+{
+  "task_id": "swebench_verified__pydata__xarray-4966",
+  "test_source": "",
+  "run_command": "python -m pytest helper_test.py",
+  "generator_model": "qwen3.7-plus",
+  "prompt_hash": "sha256:bb19134e16e23e4dc46a221c1428730f7f3be75c195317ac36807f39b9fdd950",
+  "candidate_index": 0,
+  "frozen_hash": null,
+  "collected": null,
+  "fail_before": null,
+  "pass_after_gold": null,
+  "classification": "T0_invalid",
+  "issue_provenance_ok": null,
+  "suspicious_literals": [],
+  "audit_passed": null,
+  "notes": "no runnable candidate"
+}

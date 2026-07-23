@@ -1,0 +1,17 @@
+{
+  "task_id": "swebench_verified__pytest-dev__pytest-10051",
+  "test_source": "import logging\n\ndef test_caplog_get_records_clear_conflict(caplog) -> None:\n    def verify_consistency() -> None:\n        assert caplog.get_records(\"call\") == caplog.records\n\n    verify_consistency()\n    logging.warning(\"test\")\n    verify_consistency()\n    caplog.clear()\n    verify_consistency()",
+  "run_command": "python -m pytest helper_test.py",
+  "generator_model": "qwen3.7-plus",
+  "prompt_hash": "sha256:a6068ab4a7b192b41d631762a03977158a6f21022a18d0e487840e84daf6e3ea",
+  "candidate_index": 0,
+  "frozen_hash": "sha256:2574da347d92293ca1a6f299fa0b981f81771626b08e35ce2c14850d6f58fa5d",
+  "collected": true,
+  "fail_before": true,
+  "pass_after_gold": true,
+  "classification": "T4_decoupled_valid",
+  "issue_provenance_ok": true,
+  "suspicious_literals": [],
+  "audit_passed": null,
+  "notes": ""
+}

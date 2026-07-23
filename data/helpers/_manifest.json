@@ -1,0 +1,89 @@
+{
+  "classes": {
+    "T4_decoupled_valid": 5,
+    "T1_non_reproducing": 1,
+    "T2_incompatible_oracle": 2,
+    "T3_valid_reproduction": 2,
+    "T0_invalid": 2
+  },
+  "tasks": [
+    {
+      "task_id": "swebench_verified__psf__requests-1142",
+      "classification": "T4_decoupled_valid",
+      "cached": true
+    },
+    {
+      "task_id": "swebench_verified__psf__requests-1724",
+      "classification": "T1_non_reproducing",
+      "cached": true
+    },
+    {
+      "task_id": "swebench_verified__psf__requests-1766",
+      "classification": "T2_incompatible_oracle",
+      "cached": true
+    },
+    {
+      "task_id": "swebench_verified__psf__requests-2931",
+      "classification": "T3_valid_reproduction",
+      "fail_before": true,
+      "pass_after_gold": true,
+      "issue_provenance_ok": false
+    },
+    {
+      "task_id": "swebench_verified__pytest-dev__pytest-5809",
+      "classification": "T0_invalid",
+      "fail_before": null,
+      "pass_after_gold": null,
+      "issue_provenance_ok": null
+    },
+    {
+      "task_id": "swebench_verified__pytest-dev__pytest-7571",
+      "classification": "T4_decoupled_valid",
+      "fail_before": true,
+      "pass_after_gold": true,
+      "issue_provenance_ok": true
+    },
+    {
+      "task_id": "swebench_verified__pytest-dev__pytest-10051",
+      "classification": "T4_decoupled_valid",
+      "fail_before": true,
+      "pass_after_gold": true,
+      "issue_provenance_ok": true
+    },
+    {
+      "task_id": "swebench_verified__pylint-dev__pylint-4551",
+      "classification": "T2_incompatible_oracle",
+      "fail_before": true,
+      "pass_after_gold": false,
+      "issue_provenance_ok": false
+    },
+    {
+      "task_id": "swebench_verified__pylint-dev__pylint-4604",
+      "classification": "T3_valid_reproduction",
+      "fail_before": true,
+      "pass_after_gold": true,
+      "issue_provenance_ok": false
+    },
+    {
+      "task_id": "swebench_verified__pallets__flask-5014",
+      "classification": "T4_decoupled_valid",
+      "fail_before": true,
+      "pass_after_gold": true,
+      "issue_provenance_ok": true
+    },
+    {
+      "task_id": "swebench_verified__pydata__xarray-3677",
+      "classification": "T4_decoupled_valid",
+      "fail_before": true,
+      "pass_after_gold": true,
+      "issue_provenance_ok": true
+    },
+    {
+      "task_id": "swebench_verified__pydata__xarray-4966",
+      "classification": "T0_invalid",
+      "fail_before": null,
+      "pass_after_gold": null,
+      "issue_provenance_ok": null
+    }
+  ]
+}

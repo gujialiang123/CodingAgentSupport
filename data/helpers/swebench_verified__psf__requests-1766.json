@@ -1,0 +1,17 @@
+{
+  "task_id": "swebench_verified__psf__requests-1766",
+  "test_source": "import requests\nfrom requests.auth import HTTPDigestAuth\nfrom requests.models import Response\nfrom requests.structures import CaseInsensitiveDict\nfrom requests.adapters import HTTPAdapter\n\ndef test_digest_qop_quoted():\n    class MockAdapter(HTTPAdapter):\n        def __init__(self, *args, **kwargs):\n            super().__init__(*args, **kwargs)\n            self.call_count = 0\n            self.last_request = None\n            \n        def send(self, request, **kwargs):\n            self.call_count += 1\n            resp = Response()\n            resp.url = request.url\n            if self.call_count == 1:\n                resp.status_code = 401\n                resp.headers = CaseInsensitiveDict({\n                    'WWW-Authenticate': 'Digest realm=\"test\", qop=\"auth\", nonce=\"abc\", opaque=\"def\"'\n                })\n            else:\n                resp.status_code = 200\n                self.last_request = request\n            return resp\n\n    s = requests.Session()\n    adapter = MockAdapter()\n    s.mount('http://', adapter)\n    s.auth = HTTPDigestAuth('user', 'passwd')\n    \n    s.get('http://example.com/digest-auth')\n    \n    auth_header = adapter.last_request.headers.get('Authorization', '')\n    # RFC2617 specifies that the qop-options directive must be a quoted string\n    assert 'qop=\"auth\"' in auth_header",
+  "run_command": "python -m pytest helper_test.py",
+  "generator_model": "qwen3.7-plus",
+  "prompt_hash": "sha256:95cfb25986e373287b885a9526d738724158a0b89e2137006e85a91c0df8d1b9",
+  "candidate_index": 0,
+  "frozen_hash": "sha256:e745686b98b53a5259110e8aa89f2f74310b5ffb06efa487505f628eeae2299c",
+  "collected": true,
+  "fail_before": true,
+  "pass_after_gold": false,
+  "classification": "T2_incompatible_oracle",
+  "issue_provenance_ok": true,
+  "suspicious_literals": [],
+  "audit_passed": null,
+  "notes": ""
+}

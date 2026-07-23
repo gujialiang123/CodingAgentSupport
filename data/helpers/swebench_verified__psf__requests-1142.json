@@ -1,0 +1,17 @@
+{
+  "task_id": "swebench_verified__psf__requests-1142",
+  "test_source": "import requests\n\ndef test_get_request_has_no_content_length_header():\n    req = requests.Request('GET', 'http://example.com')\n    prep = req.prepare()\n    assert 'Content-Length' not in prep.headers",
+  "run_command": "python -m pytest helper_test.py",
+  "generator_model": "qwen3.7-plus",
+  "prompt_hash": "sha256:67cf5def874e0d357ea34a297fef24a8c935046710f77fb03122e7618de560fa",
+  "candidate_index": 0,
+  "frozen_hash": "sha256:421e5ffa64fea6ef00881b4c4ae35691d1e09c518c7b78898f77a5180de8cc72",
+  "collected": true,
+  "fail_before": true,
+  "pass_after_gold": true,
+  "classification": "T4_decoupled_valid",
+  "issue_provenance_ok": true,
+  "suspicious_literals": [],
+  "audit_passed": null,
+  "notes": ""
+}

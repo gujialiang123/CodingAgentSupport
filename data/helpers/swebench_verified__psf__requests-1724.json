@@ -1,0 +1,17 @@
+{
+  "task_id": "swebench_verified__psf__requests-1724",
+  "test_source": "import sys\nimport requests\n\ndef test_unicode_method_preparation():\n    \"\"\"\n    Test that passing a unicode method results in a native string method\n    on the PreparedRequest. In Python 2, this prevents UnicodeDecodeError\n    in httplib when the request body contains non-ASCII bytes.\n    \"\"\"\n    req = requests.Request(\n        method=u'POST',\n        url='http://example.com',\n        data=b'\\xcf\\x84\\xcf\\x89'\n    )\n    prep = req.prepare()\n    \n    # The method must be a native string (str in both Py2 and Py3)\n    assert isinstance(prep.method, str)\n    \n    if sys.version_info[0] == 2:\n        # In Python 2, it must not be unicode\n        assert not isinstance(prep.method, unicode)\n        \n        # Simulate httplib's _send_output which concatenates the request line\n        # and the body. If prep.method were unicode, this would raise UnicodeDecodeError.\n        request_line = prep.method + b' / HTTP/1.1\\r\\n'\n        msg = request_line + prep.body\n        assert isinstance(msg, str)",
+  "run_command": "python -m pytest helper_test.py",
+  "generator_model": "qwen3.7-plus",
+  "prompt_hash": "sha256:f1093866f6904ff4d7734399dfa7e361c6a718fea29e0639fdb637ef7c1d148b",
+  "candidate_index": 0,
+  "frozen_hash": "sha256:6e12d9400eff1f537824a52f631d54a0f20d66b61aaed684e1ac119cffd40f25",
+  "collected": true,
+  "fail_before": false,
+  "pass_after_gold": true,
+  "classification": "T1_non_reproducing",
+  "issue_provenance_ok": true,
+  "suspicious_literals": [],
+  "audit_passed": null,
+  "notes": ""
+}

@@ -1,0 +1,17 @@
+{
+  "task_id": "swebench_verified__pydata__xarray-3677",
+  "test_source": "import xarray as xr\n\ndef test_dataset_merge_dataarray():\n    ds = xr.Dataset({'a': 0})\n    da = xr.DataArray(1, name='b')\n    \n    expected = xr.merge([ds, da])\n    actual = ds.merge(da)\n    \n    xr.testing.assert_identical(actual, expected)",
+  "run_command": "python -m pytest helper_test.py",
+  "generator_model": "qwen3.7-plus",
+  "prompt_hash": "sha256:38271796ba57923460fac93486736f125c6ae6557f4285b7338d3f5a4395d0b5",
+  "candidate_index": 0,
+  "frozen_hash": "sha256:72b2161e585f23d15b2ccfe88e8bb6a36f9e3c5144cd1f82eaa41df290643f92",
+  "collected": true,
+  "fail_before": true,
+  "pass_after_gold": true,
+  "classification": "T4_decoupled_valid",
+  "issue_provenance_ok": true,
+  "suspicious_literals": [],
+  "audit_passed": null,
+  "notes": ""
+}
