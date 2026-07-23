@@ -120,6 +120,17 @@ _CONFIG_FILES = ("pyproject.toml", "setup.cfg", "tox.ini", ".flake8",
                  "ruff.toml", ".ruff.toml", "mypy.ini")
 
 
+def changed_files_from_diff(diff: str) -> list[str]:
+    """Extract changed file paths from a unified diff (``+++ b/<path>`` lines)."""
+    out: list[str] = []
+    for ln in (diff or "").splitlines():
+        if ln.startswith("+++ b/"):
+            p = ln[6:].strip()
+            if p and p != "/dev/null":
+                out.append(p)
+    return out
+
+
 def detect_configured_tools(exec_fn) -> set[str]:
     """Which QA tools the repo actually configures (read repo config files)."""
     found: set[str] = set()
@@ -252,9 +263,11 @@ def gate_policy_v2() -> GatePolicy:
 
 
 def compute_baseline_v2(
-    workspace_path: Path, policy: GatePolicy, exec_fn=None, ctx: dict | None = None
+    workspace_path: Path, policy: GatePolicy | None = None, exec_fn=None,
+    ctx: dict | None = None
 ) -> dict[str, int]:
     """Advisory baseline for a v2 policy (call on the BASE tree, before edits)."""
+    policy = policy or gate_policy_v2()
     exec_fn = exec_fn or _host_exec(Path(workspace_path))
     ctx = dict(ctx or {})
     ctx.setdefault("configured", detect_configured_tools(exec_fn))

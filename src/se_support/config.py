@@ -27,7 +27,7 @@ SUPPORT_CONDITIONS: tuple[str, ...] = (
 # Both are recorded on every RunSpec so results can be grouped by the exact
 # construct definitions that produced them.
 PROTOCOL_VERSION: str = "2026-07-21"
-CONDITION_VERSION: str = "0.1.0"
+CONDITION_VERSION: str = "0.2.0"
 
 
 def repo_root() -> Path:

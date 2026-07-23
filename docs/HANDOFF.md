@@ -81,15 +81,23 @@ The scheduler skips already-completed cells, so interrupted runs resume safely.
    containers**, so fail-before/pass-after actually execute — helpers reach
    T3/T4 (verified on psf__requests-2931: fail_before=True, pass_after_gold=True).
    Only T3/T4 helpers are injected; T0–T2 are recorded (not dropped).
-3. ✅ **RESOLVED (P5, C1+C5).** C1 is now **issue-based retrieval** (v2):
-   symbol/lexical scoring of repo files, top-k snippets with `path:line`
-   provenance, related tests, fixed token budget, plus a `C1_random` same-budget
-   control. C5 is now **repository-scoped frozen memory** (v2): durable repo
-   knowledge only, no task leakage, frozen once via `scripts/freeze_repo_memory.py`
-   (`--memory-cache-dir`). **C3 v2 (repo-native targeted-test gate) is the last
-   remaining P5 item** — deferred until after Exp 010 to keep a clean protocol
-   boundary; it will also move basic install/run-tests *operational access* to a
-   shared baseline for ALL conditions so C5 measures memory, not access.
+3. ✅ **RESOLVED (P5, C1+C3+C5).** All three supports upgraded to v2 and now
+   default (protocol/CONDITION_VERSION bumped to **0.2.0**):
+   - **C1 v2** — issue-based retrieval (symbol/lexical scoring, top-k snippets
+     with `path:line` provenance, related tests, fixed token budget) + a
+     `C1_random` same-budget control.
+   - **C3 v2** — repo-aware gates: syntax + import + **repo-native targeted tests**
+     for changed modules (blocking; never the hidden official tests), with
+     lint/type checks that run **only when the repo configures them** (no forcing
+     unconfigured Ruff/Bandit). Verified live on psf/requests: ruff/flake8/mypy
+     correctly skipped as "not configured by repo".
+   - **C5 v2** — repository-scoped frozen memory (no task leakage), frozen once via
+     `scripts/freeze_repo_memory.py`; `data/repo_memory/<repo>.md` for all 5
+     cohort repos. Basic install/run-tests **operational access is now in the
+     shared base prompt for ALL conditions**, so C5 measures memory, not access.
+   Known limitation: the targeted-test file mapping is heuristic
+   (`tests/test_<stem>.py`); repos with monolithic test files (e.g. requests'
+   `tests/test_requests.py`) may not map, so targeted tests pass trivially there.
 4. ✅ **DIAGNOSED (Exp 009A).** The enforced harness (C4) — not the turn budget —
    drives C6's deficit for this model. C6−C4 recovers resolution (0.39→0.58) at
    25 turns; doubling the budget (C6@50) does NOT recover resolution (0.39), only

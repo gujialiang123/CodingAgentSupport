@@ -195,12 +195,12 @@ def _run_body(
         container.inject_file("/testbed/se_support_helper_test.py",
                               helper_artifact.test_source)
 
-    # EP-07: advisory-gate baseline on the BASE tree (before edits).
+    # EP-07: advisory-gate baseline on the BASE tree (before edits). C3 v2 policy.
     if cond.gates and hasattr(agent, "gate_baseline"):
-        from se_support.support.gate_policy import compute_baseline
+        from se_support.support.gate_policy import compute_baseline_v2
 
         gate_exec = container.gate_exec_fn() if use_container else None
-        agent.gate_baseline = compute_baseline(
+        agent.gate_baseline = compute_baseline_v2(
             agent_ws.path, getattr(agent, "gate_policy", None), exec_fn=gate_exec
         )
 

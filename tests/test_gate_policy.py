@@ -143,3 +143,15 @@ def test_v2_no_tests_map_passes_trivially():
     by = {r.name: r for r in results}
     assert by["targeted_tests"].passed is True
     assert "no repo-native tests" in by["targeted_tests"].preview
+
+
+def test_changed_files_from_diff():
+    from se_support.support.gate_policy import changed_files_from_diff
+
+    diff = (
+        "diff --git a/pkg/mod.py b/pkg/mod.py\n"
+        "--- a/pkg/mod.py\n+++ b/pkg/mod.py\n@@ -1 +1 @@\n-x\n+y\n"
+        "diff --git a/new.py b/new.py\n--- /dev/null\n+++ b/new.py\n@@ +1 @@\n+z\n"
+    )
+    assert changed_files_from_diff(diff) == ["pkg/mod.py", "new.py"]
+    assert changed_files_from_diff("") == []

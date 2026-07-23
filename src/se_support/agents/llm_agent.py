@@ -35,10 +35,11 @@ from se_support.support import (
     get_condition,
 )
 from se_support.support.gate_policy import (
-    GatePolicy,
     blocking_failures,
+    changed_files_from_diff,
     format_feedback,
-    run_policy,
+    gate_policy_v2,
+    run_policy_v2,
 )
 from se_support.support.harness import HarnessStateMachine
 
@@ -62,8 +63,8 @@ class LLMAgent:
         self.sandbox_policy = sandbox_policy
         # When set, the frozen support bundle the agent's prompt is built from (EP-02).
         self.support_bundle = None
-        # C3 gate policy + base-tree advisory baseline (EP-07).
-        self.gate_policy = GatePolicy()
+        # C3 gate policy (v2: repo-aware, targeted) + base-tree advisory baseline.
+        self.gate_policy = gate_policy_v2()
         self.gate_baseline: dict = {}
         self.name = f"llm_agent[{getattr(client, 'model', 'unknown')}]"
 
@@ -150,9 +151,10 @@ class LLMAgent:
                     if cond.gates:
                         gate_exec = (workspace.gate_exec_fn()
                                      if hasattr(workspace, "gate_exec_fn") else None)
-                        results = run_policy(
-                            workspace.path, self.gate_baseline, self.gate_policy,
-                            exec_fn=gate_exec,
+                        changed = changed_files_from_diff(workspace.final_diff())
+                        results = run_policy_v2(
+                            workspace.path, changed, self.gate_baseline,
+                            self.gate_policy, exec_fn=gate_exec,
                         )
                         run_dir.write_json(
                             FILE_GATE_RESULTS, [r.to_dict() for r in results]

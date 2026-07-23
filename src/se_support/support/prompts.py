@@ -27,6 +27,9 @@ fenced bash block:
 You are in the repository root. The target package is already importable; you do
 NOT have network access, so do not try to pip install, create virtualenvs, or
 fetch anything. Fix the bug by editing the repository's source files directly.
+You can run the repository's existing test suite with pytest (for example
+`python -m pytest <path/to/test_file.py>`) to check your work — this operational
+access is available regardless of what other support you are given.
 Use only NON-INTERACTIVE commands (e.g. a `python - <<'PY' ... PY` heredoc,
 `sed -i`, or redirecting into a file). Do NOT use interactive editors such as
 nano, vim, or less. Inspect files, make the edit, and verify it. When the fix is
