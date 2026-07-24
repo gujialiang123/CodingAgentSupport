@@ -1,0 +1,17 @@
+{
+  "task_id": "swebench_verified__psf__requests-6028",
+  "test_source": "import pytest\nimport requests\nfrom unittest.mock import Mock, patch\n\ndef test_proxy_authentication_with_python_38_bug():\n    \"\"\"Test that proxy authentication works correctly with Python 3.8+ behavior\"\"\"\n    \n    # Mock a proxy response that would return 407 without proper authentication\n    mock_response = Mock()\n    mock_response.status_code = 407\n    mock_response.headers = {}\n    \n    # Mock the session to simulate the proxy authentication issue\n    with patch('requests.sessions.Session.send') as mock_send:\n        mock_send.return_value = mock_response\n        \n        # This should work without raising an exception about proxy authentication\n        # The bug manifests when Python 3.8+ handles proxy auth differently\n        try:\n            # Using a simple proxy setup that would trigger the bug\n            proxies = {\n                'http': 'http://proxy.example.com:8080',\n                'https': 'https://proxy.example.com:8080'\n            }\n            \n            # This call should not fail due to proxy authentication issues in Python 3.8+\n            # The test verifies that the proxy handling doesn't break with authentication\n            response = requests.get('https://httpbin.org/get', proxies=proxies)\n            \n            # If we get here without exception, the bug is fixed\n            # We're testing the behavioral aspect - no 407 error from proxy auth\n            assert response.status_code != 407\n            \n        except requests.exceptions.HTTPError as e:\n            # If we get a 407 error, that's the bug manifesting\n            if e.response.status_code == 407:\n                pytest.fail(\"Proxy authentication bug reproduced - got 407 status code\")\n            raise",
+  "run_command": "python -m pytest helper_test.py",
+  "generator_model": "qwen3-coder-30b-a3b-instruct",
+  "prompt_hash": "sha256:68a70748800e15a3308ae5a1747d911d1876a935174a1d6516494ee5c1be505f",
+  "candidate_index": 0,
+  "frozen_hash": "sha256:339c73115f851328a1309fc225c9db60716a5e613beab34b8a9217f8c5e70a54",
+  "collected": true,
+  "fail_before": true,
+  "pass_after_gold": false,
+  "classification": "T2_incompatible_oracle",
+  "issue_provenance_ok": true,
+  "suspicious_literals": [],
+  "audit_passed": null,
+  "notes": ""
+}

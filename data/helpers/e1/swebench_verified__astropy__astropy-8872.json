@@ -1,0 +1,17 @@
+{
+  "task_id": "swebench_verified__astropy__astropy-8872",
+  "test_source": "import numpy as np\nimport pytest\nfrom astropy import units as u\n\ndef test_float16_quantity_dtype_preservation():\n    \"\"\"Test that float16 quantities preserve their dtype instead of being upgraded to float64.\"\"\"\n    # Create a quantity from np.float16\n    q = np.float16(1) * u.km\n    \n    # The dtype should remain float16, not be upgraded to float64\n    assert q.dtype == np.float16",
+  "run_command": "python -m pytest helper_test.py",
+  "generator_model": "qwen3-coder-30b-a3b-instruct",
+  "prompt_hash": "sha256:8d69ce81303ba30c20a284bddf1ce6dc5918173f76a1d1b56d9cedd523b55502",
+  "candidate_index": 0,
+  "frozen_hash": "sha256:cfc80161fe1b65c2f4ffc04dc8d7fe3273b6c22525ab9baab7b7d127c75f3b09",
+  "collected": true,
+  "fail_before": true,
+  "pass_after_gold": true,
+  "classification": "T4_decoupled_valid",
+  "issue_provenance_ok": true,
+  "suspicious_literals": [],
+  "audit_passed": null,
+  "notes": ""
+}

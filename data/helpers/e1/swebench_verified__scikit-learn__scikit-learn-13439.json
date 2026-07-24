@@ -1,0 +1,17 @@
+{
+  "task_id": "swebench_verified__scikit-learn__scikit-learn-13439",
+  "test_source": "import pytest\nfrom sklearn import svm\nfrom sklearn.datasets import make_classification\nfrom sklearn.feature_selection import SelectKBest, f_regression\nfrom sklearn.pipeline import Pipeline\n\ndef test_pipeline_len_method_exists():\n    \"\"\"Test that Pipeline implements __len__ method to support len() calls.\"\"\"\n    # Setup pipeline as described in the issue\n    X, y = make_classification(n_informative=5, n_redundant=0, random_state=42)\n    \n    anova_filter = SelectKBest(f_regression, k=5)\n    clf = svm.SVC(kernel='linear')\n    pipe = Pipeline([('anova', anova_filter), ('svc', clf)])\n    \n    # This should not raise an error - the pipeline should have a __len__ method\n    # that allows len(pipe) to work and pipe[:len(pipe)] to work\n    assert len(pipe) == 2",
+  "run_command": "python -m pytest helper_test.py",
+  "generator_model": "qwen3-coder-30b-a3b-instruct",
+  "prompt_hash": "sha256:547b79479745bf85d7fc937720034c688b44d2c1204768d27371c549843893fb",
+  "candidate_index": 0,
+  "frozen_hash": "sha256:8b21ad3127bfa8de0df82521f494b29f663f3065ad0804609dd2ffc79da18ec4",
+  "collected": true,
+  "fail_before": true,
+  "pass_after_gold": true,
+  "classification": "T4_decoupled_valid",
+  "issue_provenance_ok": true,
+  "suspicious_literals": [],
+  "audit_passed": null,
+  "notes": ""
+}

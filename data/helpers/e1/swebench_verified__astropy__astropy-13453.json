@@ -1,0 +1,17 @@
+{
+  "task_id": "swebench_verified__astropy__astropy-13453",
+  "test_source": "import pytest\nfrom astropy.table import Table\nfrom io import StringIO\n\n\ndef test_html_formatting():\n    \"\"\"Test that HTML output respects the formats parameter.\"\"\"\n    # Create test table\n    t = Table([(1.23875234858e-24, 3.2348748432e-15), (2, 4)], names=('a', 'b'))\n    \n    # Test HTML formatting - should apply scientific notation with 2 decimal places\n    with StringIO() as sp:\n        t.write(sp, format=\"html\", formats={\"a\": lambda x: f\"{x:.2e}\"})\n        html_output = sp.getvalue()\n    \n    # The bug is that formats are ignored in HTML output\n    # Check that the formatting was applied (should contain scientific notation with 2 decimals)\n    # This assertion will fail with current buggy implementation\n    assert \"1.24e-24\" in html_output or \"1.23e-24\" in html_output\n    \n    # More specifically, check that the format function was applied\n    # The original values are very small numbers, so they should be formatted differently\n    # If formats were working, we'd see the formatted version rather than raw representation\n    assert \"1.23875234858e-24\" not in html_output  # Raw format should not appear",
+  "run_command": "python -m pytest helper_test.py",
+  "generator_model": "qwen3-coder-30b-a3b-instruct",
+  "prompt_hash": "sha256:cc36d1fba6cdd27ee373e5680826d77c0f946f09af2a802832f212f974f5e0c4",
+  "candidate_index": 0,
+  "frozen_hash": "sha256:feda4f61188c71c723497c6312daee0e10766a4fd7ecd211af069d6188484245",
+  "collected": true,
+  "fail_before": true,
+  "pass_after_gold": true,
+  "classification": "T4_decoupled_valid",
+  "issue_provenance_ok": true,
+  "suspicious_literals": [],
+  "audit_passed": null,
+  "notes": ""
+}

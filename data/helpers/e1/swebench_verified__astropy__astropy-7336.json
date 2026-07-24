@@ -1,0 +1,17 @@
+{
+  "task_id": "swebench_verified__astropy__astropy-7336",
+  "test_source": "",
+  "run_command": "python -m pytest helper_test.py",
+  "generator_model": "qwen3-coder-30b-a3b-instruct",
+  "prompt_hash": "sha256:0d034991c2eb5938d10ca35c93574e394423e197cb7a760b51eb324aca372f6c",
+  "candidate_index": 0,
+  "frozen_hash": null,
+  "collected": null,
+  "fail_before": null,
+  "pass_after_gold": null,
+  "classification": "T0_invalid",
+  "issue_provenance_ok": null,
+  "suspicious_literals": [],
+  "audit_passed": null,
+  "notes": "no runnable candidate"
+}

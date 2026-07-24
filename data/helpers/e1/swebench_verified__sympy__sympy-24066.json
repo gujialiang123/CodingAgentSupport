@@ -1,0 +1,17 @@
+{
+  "task_id": "swebench_verified__sympy__sympy-24066",
+  "test_source": "import pytest\nfrom sympy import exp\nfrom sympy.physics import units\nfrom sympy.physics.units.systems.si import SI\n\ndef test_exp_dimensionless_detection():\n    \"\"\"Test that SI._collect_factor_and_dimension properly handles dimensionless exponents in exp()\"\"\"\n    # Create an expression that should be dimensionless\n    expr = units.second / (units.ohm * units.farad)\n    \n    # Verify the expression is dimensionless (this should pass)\n    dim = SI._collect_factor_and_dimension(expr)[1]\n    assert SI.get_dimension_system().is_dimensionless(dim)\n    \n    # This should not raise a ValueError about dimension mismatch\n    # The bug occurs when trying to compute exp(expr) where expr is dimensionless\n    buggy_expr = 100 + exp(expr)\n    \n    # This line should not raise ValueError\n    try:\n        result = SI._collect_factor_and_dimension(buggy_expr)\n        # If we get here without exception, the bug is fixed\n        # The result should be a valid factor-dimension pair\n        assert len(result) == 2\n    except ValueError as e:\n        # If we get the specific error mentioned in the bug report, the bug still exists\n        if \"Dimension of\" in str(e) and \"but it should be Dimension(1)\" in str(e):\n            pytest.fail(\"Bug still exists: SI._collect_factor_and_dimension fails to detect dimensionless exponent\")\n        else:\n            raise  # Re-raise if it's a different ValueError",
+  "run_command": "python -m pytest helper_test.py",
+  "generator_model": "qwen3-coder-30b-a3b-instruct",
+  "prompt_hash": "sha256:c24b4ebbc0bacdeb7ca6e1bfdb33f8d61f423ec03eafb598fa7e686561684210",
+  "candidate_index": 0,
+  "frozen_hash": "sha256:5dbf867279849b30d9f107d0c80d2816b9d5a63bf1971fba9c6c964d653cfdcc",
+  "collected": true,
+  "fail_before": true,
+  "pass_after_gold": false,
+  "classification": "T2_incompatible_oracle",
+  "issue_provenance_ok": true,
+  "suspicious_literals": [],
+  "audit_passed": null,
+  "notes": ""
+}

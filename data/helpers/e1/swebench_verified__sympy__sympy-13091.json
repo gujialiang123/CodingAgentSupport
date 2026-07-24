@@ -1,0 +1,17 @@
+{
+  "task_id": "swebench_verified__sympy__sympy-13091",
+  "test_source": "import pytest\nimport sympy as sp\n\ndef test_rich_comparison_not_implemented():\n    \"\"\"Test that sympy objects return NotImplemented, not False, in rich comparisons with unknown types.\"\"\"\n    \n    class Foo:\n        def __init__(self, value):\n            self.value = value\n            \n        def __eq__(self, other):\n            if isinstance(other, sp.Basic):\n                return self.value == other\n            return NotImplemented\n    \n    f = Foo(5)\n    s = sp.Symbol('x')\n    \n    # Test that sympy objects return NotImplemented for unknown types\n    # This ensures symmetric comparison behavior\n    assert sp.core.basic.Basic.__eq__(s, f) is NotImplemented\n    assert sp.core.basic.Basic.__lt__(s, f) is NotImplemented\n    assert sp.core.basic.Basic.__le__(s, f) is NotImplemented\n    assert sp.core.basic.Basic.__gt__(s, f) is NotImplemented\n    assert sp.core.basic.Basic.__ge__(s, f) is NotImplemented",
+  "run_command": "python -m pytest helper_test.py",
+  "generator_model": "qwen3-coder-30b-a3b-instruct",
+  "prompt_hash": "sha256:de72061e6f451b176ceaf7fcdb09ef21b478cdcbabc7dcd04eef60bc34e4b3be",
+  "candidate_index": 0,
+  "frozen_hash": "sha256:0cbbf75dfc34408da9ae92c9b83fbe8f6fc91b38f7352e609a478709bd81dec8",
+  "collected": true,
+  "fail_before": true,
+  "pass_after_gold": false,
+  "classification": "T2_incompatible_oracle",
+  "issue_provenance_ok": true,
+  "suspicious_literals": [],
+  "audit_passed": null,
+  "notes": ""
+}

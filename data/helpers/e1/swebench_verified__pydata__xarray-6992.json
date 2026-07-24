@@ -1,0 +1,17 @@
+{
+  "task_id": "swebench_verified__pydata__xarray-6992",
+  "test_source": "import pytest\nimport xarray as xr\n\ndef test_dataset_index_refactor_coord_names_vs_variables():\n    \"\"\"Test for the bug where _coord_names exceeds _variables in Dataset after index operations.\"\"\"\n    # This should not raise ValueError: __len__() should return >= 0\n    ds = xr.Dataset(coords={\"a\": (\"x\", [1, 2, 3]), \"b\": (\"x\", ['a', 'b', 'c'])})\n    ds = ds.set_index(z=['a', 'b'])\n    # This operation previously caused the ValueError due to the broken assumption\n    # that len(_variables) >= len(_coord_names)\n    result = ds.reset_index(\"z\", drop=True)\n    \n    # The operation should complete successfully and return a valid dataset\n    assert isinstance(result, xr.Dataset)\n    # Verify the result has the expected structure\n    assert \"z\" not in result.coords\n    assert \"a\" in result.coords\n    assert \"b\" in result.coords",
+  "run_command": "python -m pytest helper_test.py",
+  "generator_model": "qwen3-coder-30b-a3b-instruct",
+  "prompt_hash": "sha256:0b7cdd93b11209792aac4e5e735554ba704dcbbf5504808c659da9f1761fd6db",
+  "candidate_index": 0,
+  "frozen_hash": "sha256:30ec31c65a574391199572e9bebc738dd0e395a5c0dc00eadbb5d3deea5ca4b7",
+  "collected": true,
+  "fail_before": true,
+  "pass_after_gold": false,
+  "classification": "T2_incompatible_oracle",
+  "issue_provenance_ok": true,
+  "suspicious_literals": [],
+  "audit_passed": null,
+  "notes": ""
+}

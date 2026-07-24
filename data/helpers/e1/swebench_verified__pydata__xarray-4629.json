@@ -1,0 +1,17 @@
+{
+  "task_id": "swebench_verified__pydata__xarray-4629",
+  "test_source": "import xarray as xr\n\n\ndef test_merge_override_attrs_copy():\n    \"\"\"Test that merge with combine_attrs='override' creates a copy of attrs, not a reference.\"\"\"\n    # Create datasets with different attrs values\n    xds1 = xr.Dataset(attrs={'a': 'b'})\n    xds2 = xr.Dataset(attrs={'a': 'c'})\n    \n    # Verify initial values\n    assert xds1.attrs['a'] == 'b'\n    assert xds2.attrs['a'] == 'c'\n    \n    # Merge with override combine_attrs\n    xds3 = xr.merge([xds1, xds2], combine_attrs='override')\n    \n    # Verify merged dataset has correct initial value\n    assert xds3.attrs['a'] == 'b'  # Should take value from first dataset\n    \n    # Modify the merged dataset's attrs\n    xds3.attrs['a'] = 'd'\n    \n    # After modification, the original datasets should NOT be affected\n    assert xds1.attrs['a'] == 'b'  # Should remain unchanged\n    assert xds2.attrs['a'] == 'c'  # Should remain unchanged\n    assert xds3.attrs['a'] == 'd'  # Should reflect the change",
+  "run_command": "python -m pytest helper_test.py",
+  "generator_model": "qwen3-coder-30b-a3b-instruct",
+  "prompt_hash": "sha256:d4dfcb858314dd275f68887b2f866dcfecb9e159d77005933a647cb4e48acc94",
+  "candidate_index": 0,
+  "frozen_hash": "sha256:4144fa5399b8195b20007eb9752d6e1d2d3cff801b50fc005cd39366f7292719",
+  "collected": true,
+  "fail_before": true,
+  "pass_after_gold": true,
+  "classification": "T4_decoupled_valid",
+  "issue_provenance_ok": true,
+  "suspicious_literals": [],
+  "audit_passed": null,
+  "notes": ""
+}

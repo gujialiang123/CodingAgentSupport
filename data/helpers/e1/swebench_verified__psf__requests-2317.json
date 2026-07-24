@@ -1,0 +1,17 @@
+{
+  "task_id": "swebench_verified__psf__requests-2317",
+  "test_source": "import pytest\nfrom requests.sessions import Session\nfrom requests.models import Request\n\n\ndef test_binary_method_string_handling():\n    \"\"\"Test that binary method strings are properly handled and not converted to literal string representations\"\"\"\n    session = Session()\n    \n    # Create a request with a binary method (simulating neutronclient behavior)\n    binary_method = b'GET'\n    \n    # This should not convert the binary method to a string representation like \"b'GET'\"\n    # The issue is that builtin_str(binary_method) produces \"b'GET'\" instead of 'GET'\n    req = Request(method=binary_method, url='http://httpbin.org/get')\n    \n    # Prepare the request - this is where the bug manifests\n    prepared = session.prepare_request(req)\n    \n    # The method should remain as 'GET', not become \"b'GET'\"\n    # If the bug exists, prepared.method will be the literal string \"b'GET'\"\n    assert prepared.method == 'GET'\n    assert prepared.method != \"b'GET'\"",
+  "run_command": "python -m pytest helper_test.py",
+  "generator_model": "qwen3-coder-30b-a3b-instruct",
+  "prompt_hash": "sha256:eaf3ef1c6296f210e5bd1d94829d206861e87095e4df981b5b0815c85fed5075",
+  "candidate_index": 0,
+  "frozen_hash": "sha256:c3026168682afe3daa0997a0d098db244cd76426b4e00df506b43a0521ba0b12",
+  "collected": true,
+  "fail_before": true,
+  "pass_after_gold": false,
+  "classification": "T2_incompatible_oracle",
+  "issue_provenance_ok": true,
+  "suspicious_literals": [],
+  "audit_passed": null,
+  "notes": ""
+}

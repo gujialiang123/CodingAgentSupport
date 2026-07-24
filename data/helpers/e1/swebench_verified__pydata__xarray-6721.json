@@ -1,0 +1,17 @@
+{
+  "task_id": "swebench_verified__pydata__xarray-6721",
+  "test_source": "import pytest\nimport xarray as xr\nfrom unittest.mock import patch, MagicMock\n\ndef test_chunks_property_should_not_load_data():\n    \"\"\"Test that accessing chunks attribute doesn't load entire array into memory.\"\"\"\n    \n    # Create a mock zarr-backed dataset\n    with patch('xarray.backends.zarr.ZarrArrayWrapper') as mock_zarr_array:\n        # Mock the zarr array to avoid actual network calls\n        mock_array = MagicMock()\n        mock_array.chunks = (100, 100)\n        mock_zarr_array.return_value = mock_array\n        \n        # Create a simple dataset with zarr-like structure\n        ds = xr.Dataset({\n            'test_var': (['x', 'y'], [[1, 2], [3, 4]])\n        })\n        \n        # Mock the variable to have zarr-like behavior\n        with patch.object(ds['test_var'], '_data', mock_zarr_array):\n            # This should not trigger loading of actual data\n            # The bug causes it to access .values which loads data\n            with patch('xarray.core.variable._as_array_or_item') as mock_asarray:\n                # Access chunks property - this should inspect encoding, not load data\n                chunks = ds.chunks\n                \n                # Verify that _as_array_or_item was never called\n                # This would indicate data was unnecessarily loaded\n                mock_asarray.assert_not_called()",
+  "run_command": "python -m pytest helper_test.py",
+  "generator_model": "qwen3-coder-30b-a3b-instruct",
+  "prompt_hash": "sha256:c7ffaee8690701682a289e1c0760be3f615760b56c79c3c7f411c822668d93c0",
+  "candidate_index": 0,
+  "frozen_hash": "sha256:d3c974e2ee4abcf0074364b86a5c0df9cc19448712fe0bfefdee9b062ca4b24c",
+  "collected": true,
+  "fail_before": true,
+  "pass_after_gold": false,
+  "classification": "T2_incompatible_oracle",
+  "issue_provenance_ok": true,
+  "suspicious_literals": [],
+  "audit_passed": null,
+  "notes": ""
+}

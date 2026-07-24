@@ -1,0 +1,19 @@
+{
+  "task_id": "swebench_verified__sphinx-doc__sphinx-7454",
+  "test_source": "import pytest\nfrom sphinx.application import Sphinx\nfrom sphinx.ext.autodoc import FunctionDocumenter\nfrom sphinx.util.docutils import docutils_namespace\n\ndef test_autodoc_typehints_none_link_consistency(tmp_path):\n    \"\"\"Test that None type hints are consistently linked in both description and signature modes.\"\"\"\n    \n    # Create test source file\n    source_file = tmp_path / \"test_module.py\"\n    source_file.write_text(\"def f1() -> None: return None\\n\")\n    \n    # Create conf.py\n    conf_file = tmp_path / \"conf.py\"\n    conf_file.write_text(\"\"\"\nextensions = [\"sphinx.ext.autodoc\", \"sphinx.ext.intersphinx\"]\nintersphinx_mapping = {\"python\": (\"https://docs.python.org/3\", None)}\n\"\"\")\n    \n    # Create index.rst\n    index_file = tmp_path / \"index.rst\"\n    index_file.write_text(\".. automodule:: test_module\\n   :members:\\n\")\n    \n    # Test with description mode\n    with docutils_namespace():\n        app_desc = Sphinx(\n            srcdir=str(tmp_path),\n            confdir=str(tmp_path),\n            outdir=str(tmp_path / \"build_desc\"),\n            doctreedir=str(tmp_path / \"doctrees\"),\n            buildername=\"html\"\n        )\n        app_desc.config.autodoc_typehints = 'description'\n        app_desc.build()\n        \n        # Check if None link exists in description mode\n        desc_content = (tmp_path / \"build_desc\" / \"index.html\").read_text()\n        has_none_link_desc = 'docs.python.org/3/library/constants.html#None' in desc_content\n        \n    # Test with signature mode\n    with docutils_namespace():\n        app_sig = Sphinx(\n            srcdir=str(tmp_path),\n            confdir=str(tmp_path),\n            outdir=str(tmp_path / \"build_sig\"),\n            doctreedir=str(tmp_path / \"doctrees\"),\n            buildername=\"html\"\n        )\n        app_sig.config.autodoc_typehints = 'signature'\n        app_sig.build()\n        \n        # Check if None link exists in signature mode\n        sig_content = (tmp_path / \"build_sig\" / \"index.html\").read_text()\n        has_none_link_sig = 'docs.python.org/3/library/constants.html#None' in sig_content\n    \n    # Both modes should have the same behavior - None should be linked consistently\n    assert has_none_link_desc == has_none_link_sig, (\n        \"None type hints should be consistently linked in both description and signature modes\"\n    )",
+  "run_command": "python -m pytest helper_test.py",
+  "generator_model": "qwen3-coder-30b-a3b-instruct",
+  "prompt_hash": "sha256:73795e7e1ca7c89c7b64e7fb6091463f8d1d34eb1fc1cc31b7439030a14fe3dc",
+  "candidate_index": 0,
+  "frozen_hash": "sha256:7aef5432ac8a3a08532019a19a2ce03e1ea04d07b0d8083372acd2ad4fb7432a",
+  "collected": true,
+  "fail_before": false,
+  "pass_after_gold": true,
+  "classification": "T1_non_reproducing",
+  "issue_provenance_ok": false,
+  "suspicious_literals": [
+    "None type hints should be consistently linked in both description and signature modes"
+  ],
+  "audit_passed": null,
+  "notes": ""
+}

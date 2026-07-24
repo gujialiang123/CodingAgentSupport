@@ -1,0 +1,20 @@
+{
+  "task_id": "swebench_verified__astropy__astropy-14598",
+  "test_source": "import pytest\nfrom astropy.io import fits\n\ndef test_fits_card_double_quote_consistency():\n    \"\"\"Test that FITS Card handles double single quotes consistently.\"\"\"\n    # Test case 1: Double quotes at end of string\n    for n in range(60, 70):\n        card1 = fits.Card('CONFIG', \"x\" * n + \"''\")\n        card2 = fits.Card.fromstring(str(card1))\n        assert card1.value == card2.value, f\"Failed for n={n}: {card1.value} != {card2.value}\"\n    \n    # Test case 2: Double quotes in middle of string\n    for n in range(50, 70):\n        card1 = fits.Card('CONFIG', \"x\" * n + \"''\" + \"x\" * 10)\n        card2 = fits.Card.fromstring(str(card1))\n        assert card1.value == card2.value, f\"Failed for n={n}: {card1.value} != {card2.value}\"",
+  "run_command": "python -m pytest helper_test.py",
+  "generator_model": "qwen3-coder-30b-a3b-instruct",
+  "prompt_hash": "sha256:c2860dd4c52574541bf30d5fcb610e82ca739061d39a99e8b0f3616cf5cae7cf",
+  "candidate_index": 0,
+  "frozen_hash": "sha256:72fc3471537e065b27d573d2e8731519ecda008cbaf7bdeeaf2d818132aca735",
+  "collected": true,
+  "fail_before": true,
+  "pass_after_gold": true,
+  "classification": "T3_valid_reproduction",
+  "issue_provenance_ok": false,
+  "suspicious_literals": [
+    "Failed for n=",
+    "Failed for n="
+  ],
+  "audit_passed": null,
+  "notes": ""
+}
