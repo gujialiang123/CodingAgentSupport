@@ -39,6 +39,24 @@ class RunOutcome:
     run_dir: Path
     eval_result: EvalResult
     quality_card: PatchQualityCard
+    status: str = "ok"  # "ok" | "infrastructure_failure"
+
+
+def _infrastructure_failure(rd, run_id, stage, state, task) -> RunOutcome:
+    """Record an invalid run (unclean base tree) that must NOT count as an agent
+    failure, and return a sentinel outcome (integrity fix, Phase 3)."""
+    rd.write_json("integrity/status.json", {
+        "status": "infrastructure_failure", "stage": stage,
+        "unexplained_changes": state.get("unexplained_changes", []),
+    })
+    empty_eval = EvalResult(run_id=run_id, resolved=False, patch_applies=False)
+    empty_eval.run_id = run_id
+    rd.write_text(FILE_FINAL_PATCH, "")
+    card = build_card(task, empty_eval, "", _load_gold_diff(task), run_dir=rd.path)
+    rd.write_model(FILE_EVAL, empty_eval)
+    rd.write_model(FILE_QUALITY, card)
+    return RunOutcome(run_id=run_id, run_dir=rd.path, eval_result=empty_eval,
+                      quality_card=card, status="infrastructure_failure")
 
 
 def _load_gold_diff(task: TaskSpec) -> str | None:
@@ -50,6 +68,55 @@ def _load_gold_diff(task: TaskSpec) -> str | None:
     if not p.is_absolute():
         p = repo_root() / p
     return p.read_text(encoding="utf-8") if p.exists() else None
+
+
+class InfrastructureFailure(RuntimeError):
+    """Raised when the base tree is not clean before the agent runs.
+
+    The run is invalid infrastructure, NOT an agent failure, and must be excluded
+    from agent-outcome statistics (integrity fix, Phase 3).
+    """
+
+    def __init__(self, stage: str, state: dict) -> None:
+        super().__init__(f"unclean tree at {stage}: {state.get('unexplained_changes')}")
+        self.stage = stage
+        self.state = state
+
+
+def _resolve_helper_artifact(
+    task, cond, use_container, helper_cache_dir, generator_client, model,
+    docker_env, rd,
+):
+    """Resolve the frozen/generated C2 helper BEFORE the agent container starts.
+
+    Prefers a pre-frozen, container-validated helper (deterministic). Otherwise
+    generates one in a SEPARATE generator/validator container (or a host gen zone
+    for fixture mode) that is fully closed before the agent container starts, so
+    the helper is never produced inside the agent's own container.
+    """
+    helper_artifact = None
+    try:
+        cached = _load_frozen_helper(task, helper_cache_dir)
+        if cached is not None:
+            helper_artifact = cached
+        elif use_container:
+            from se_support.support.repro_tests.pregen_container import (
+                generate_helper_in_container,
+            )
+
+            helper_artifact = generate_helper_in_container(
+                task, generator_client, env=docker_env, generator_model=model
+            )
+        else:
+            from se_support.support.repro_tests.pregen import generate_helper_for_task
+
+            helper_artifact = generate_helper_for_task(
+                task, generator_client, rd.path / "gen_zone", generator_model=model
+            )
+        rd.write_json("support/helper_artifact.json", helper_artifact.model_dump())
+    except Exception as exc:  # noqa: BLE001 - record, do not crash the run
+        rd.write_json("support/helper_artifact_error.json", {"error": repr(exc)})
+    return helper_artifact
 
 
 def run_single(
@@ -107,6 +174,29 @@ def run_single(
 
     cond = _get_cond(condition)
 
+    # Integrity fix: resolve the C2 helper BEFORE the agent container starts, so
+    # it can be delivered as a read-only mount (experiment input) rather than
+    # written into the repo git tree (which would contaminate the final patch).
+    helper_artifact = None
+    helper_host_sha = None
+    support_mount = None
+    if cond.tests and generator_client is not None:
+        helper_artifact = _resolve_helper_artifact(
+            task, cond, use_container, helper_cache_dir, generator_client,
+            model, docker_env, rd,
+        )
+        if use_container and helper_artifact is not None and helper_artifact.test_source:
+            import hashlib
+
+            support_mount = rd.path / "support_mount"
+            support_mount.mkdir(parents=True, exist_ok=True)
+            (support_mount / "helper_test.py").write_text(
+                helper_artifact.test_source, encoding="utf-8"
+            )
+            helper_host_sha = hashlib.sha256(
+                helper_artifact.test_source.encode()
+            ).hexdigest()
+
     # Build the agent workspace from the base state.
     container = None
     if use_container:
@@ -114,7 +204,8 @@ def run_single(
 
         instance_id = task.task_id.split("__", 1)[1] if "__" in task.task_id else task.task_id
         container = ContainerWorkspace.start(
-            instance_id, rd, namespace=namespace, env=docker_env
+            instance_id, rd, namespace=namespace, env=docker_env,
+            support_mount=support_mount,
         )
         agent_ws = container
         reader = container
@@ -133,6 +224,7 @@ def run_single(
             agent_ws, container, reader, generator_client, model,
             sandbox_policy, dataset_name, docker_python_exe, docker_env,
             helper_cache_dir, memory_cache_dir,
+            helper_artifact=helper_artifact, helper_host_sha=helper_host_sha,
         )
     finally:
         if container is not None:
@@ -145,39 +237,20 @@ def _run_body(
     sandbox_policy, dataset_name, docker_python_exe, docker_env,
     helper_cache_dir=None,
     memory_cache_dir=None,
+    helper_artifact=None,
+    helper_host_sha=None,
 ) -> RunOutcome:
-    # A1/EP-03: generate the C2 helper (pre-run generator zone) for C2/C6.
-    # In container mode, validate the helper inside the instance container (P2)
-    # so fail-before/pass-after actually execute (deps present).
-    helper_artifact = None
-    if cond.tests and generator_client is not None:
-        try:
-            # P4: prefer a pre-frozen, container-validated helper if one exists in
-            # the helper cache. This makes C2/C2+C3 deterministic and cheap (no
-            # per-run regeneration) and guarantees the T3/T4 helper the cohort was
-            # selected on is the exact one the agent sees.
-            cached = _load_frozen_helper(task, helper_cache_dir)
-            if cached is not None:
-                helper_artifact = cached
-            elif use_container:
-                from se_support.support.repro_tests.pregen_container import (
-                    generate_helper_in_container,
-                )
+    # Integrity: S0 snapshot immediately after the container starts (before any
+    # support setup). The base tree must be clean here.
+    if use_container:
+        s0 = container.git_state()
+        rd.write_json("integrity/git_state_s0.json", s0)
+        if not s0["clean"]:
+            return _infrastructure_failure(rd, run_id, "S0_CONTAINER_START", s0, task)
 
-                helper_artifact = generate_helper_in_container(
-                    task, generator_client, env=docker_env, generator_model=model
-                )
-            else:
-                from se_support.support.repro_tests.pregen import generate_helper_for_task
-
-                helper_artifact = generate_helper_for_task(
-                    task, generator_client, rd.path / "gen_zone", generator_model=model
-                )
-            rd.write_json("support/helper_artifact.json", helper_artifact.model_dump())
-        except Exception as exc:  # noqa: BLE001 - record, do not crash the run
-            rd.write_json("support/helper_artifact_error.json", {"error": repr(exc)})
-
-    # EP-02: generate the frozen support bundle before the agent starts.
+    # EP-02: generate the frozen support bundle before the agent starts. The C2
+    # helper (if any) was resolved BEFORE container start and is mounted read-only
+    # at /testbed/.se_support/helper_test.py -- it is NOT written into the git tree.
     from se_support.support import build_bundle
 
     bundle = build_bundle(
@@ -188,12 +261,11 @@ def _run_body(
     if hasattr(agent, "support_bundle"):
         agent.support_bundle = bundle
 
-    # P1: inject a valid C2 helper read-only into the container so the agent can
-    # run it (C2/C6). Frozen source; the evaluator's copy is unaffected by edits.
-    if use_container and cond.tests and helper_artifact is not None \
-            and helper_artifact.test_source:
-        container.inject_file("/testbed/se_support_helper_test.py",
-                              helper_artifact.test_source)
+    # Integrity: record the mounted helper hash (as seen in-container) and verify
+    # it matches the host artifact we wrote before start.
+    helper_sha_before = None
+    if use_container and helper_host_sha is not None:
+        helper_sha_before = container.helper_sha256()
 
     # EP-07: advisory-gate baseline on the BASE tree (before edits). C3 v2 policy.
     if cond.gates and hasattr(agent, "gate_baseline"):
@@ -213,8 +285,41 @@ def _run_body(
     _write_manipulation_check(run_id, condition, cond, bundle, sandbox_policy, rd,
                               use_container=use_container)
 
+    # Integrity: S1 snapshot after ALL support setup, immediately before the
+    # agent runs. The tree must still be clean -- otherwise support setup (or a
+    # dirty image) mutated the repo and the run is infrastructure, not agent.
+    if use_container:
+        s1 = container.git_state()
+        rd.write_json("integrity/git_state_s1.json", s1)
+        if not s1["clean"]:
+            return _infrastructure_failure(rd, run_id, "S1_PRE_AGENT", s1, task)
+
+    _write_provenance(rd, run_id, task, condition, model, use_container, bundle,
+                      helper_host_sha, agent, container if use_container else None)
+
     agent.run(task, condition, agent_ws, rd)
-    final_diff = agent_ws.final_diff()
+
+    if use_container:
+        final_diff, patch_manifest = agent_ws.final_diff_with_manifest()
+        s2 = container.git_state()
+        rd.write_json("integrity/git_state_s2.json", s2)
+        rd.write_json("integrity/patch_manifest.json", patch_manifest)
+        if helper_host_sha is not None:
+            after = container.helper_sha256()
+            rd.write_json("integrity/helper_hash.json", {
+                "host_sha256": helper_host_sha,
+                "container_sha256_before": helper_sha_before,
+                "container_sha256_after": after,
+                "helper_unchanged": (helper_sha_before == after and after is not None),
+            })
+        # Hard invariant: the helper must never be in the agent's final patch.
+        if patch_manifest.get("helper_leak"):
+            raise RuntimeError(
+                "integrity violation: helper artifact leaked into final patch "
+                f"({patch_manifest.get('included_paths')})"
+            )
+    else:
+        final_diff = agent_ws.final_diff()
     rd.write_text(FILE_FINAL_PATCH, final_diff)
 
     # Evaluate (always the official Docker harness for real tasks).
@@ -234,6 +339,49 @@ def _run_body(
 
     return RunOutcome(run_id=run_id, run_dir=rd.path, eval_result=eval_result,
                       quality_card=card)
+
+
+def _write_provenance(rd, run_id, task, condition, model, use_container, bundle,
+                      helper_host_sha, agent, container) -> None:
+    """Record full run provenance for reproducibility (integrity fix, Phase 5)."""
+    import hashlib
+
+    from se_support.config import CONDITION_VERSION, PROTOCOL_VERSION
+    from se_support.runner.container_workspace import (
+        PATCH_EXTRACTOR_VERSION,
+        instance_image_name,
+    )
+
+    bundle_sha = None
+    try:
+        bundle_sha = hashlib.sha256(
+            "".join(sorted(a.hash or "" for a in bundle.artifacts)).encode()
+        ).hexdigest()
+    except Exception:  # noqa: BLE001
+        pass
+    gate_pol = getattr(agent, "gate_policy", None)
+    prov = {
+        "run_id": run_id,
+        "task_id": task.task_id,
+        "condition": condition,
+        "model": model,
+        "protocol_version": PROTOCOL_VERSION,
+        "condition_version": CONDITION_VERSION,
+        "patch_extractor_version": PATCH_EXTRACTOR_VERSION,
+        "gate_policy_version": getattr(gate_pol, "version", None),
+        "helper_sha256": helper_host_sha,
+        "support_bundle_sha256": bundle_sha,
+        "repo": task.repo,
+        "base_commit": task.base_commit,
+        "container_image": (
+            instance_image_name(task.task_id.split("__", 1)[-1]) if use_container else None
+        ),
+        "in_container": bool(use_container),
+    }
+    if container is not None:
+        head = container.git_state().get("head")
+        prov["container_head"] = head
+    rd.write_json("integrity/provenance.json", prov)
 
 
 def _apply_isolation(task, condition, run_id, agent, agent_ws, rd, sandbox_policy,

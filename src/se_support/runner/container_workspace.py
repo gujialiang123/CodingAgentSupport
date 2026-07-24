@@ -27,6 +27,22 @@ from se_support.runner.run_dir import CommandRecord, RunDirectory
 
 TESTBED = "/testbed"
 _ACTIVATE = "source /opt/miniconda3/bin/activate testbed 2>/dev/null; cd /testbed"
+# Read-only support mount: experiment inputs (e.g. C2 helper) the agent may read
+# but must never mutate, and which never enters the repo git tree / final patch.
+_SUPPORT_REL = ".se_support"
+_SUPPORT_DIR = f"{TESTBED}/{_SUPPORT_REL}"
+HELPER_MOUNT_PATH = f"{_SUPPORT_DIR}/helper_test.py"
+# Legacy in-tree helper path (pre-integrity-fix); kept only for historical
+# patch parsing / auditing. NEVER written for new runs.
+LEGACY_HELPER_PATH = f"{TESTBED}/se_support_helper_test.py"
+# Narrow allowlist of ephemeral paths that never count as an agent change and are
+# excluded from the final patch.
+_EPHEMERAL_GLOBS = (
+    "**/__pycache__/**", "**/*.pyc", "**/.pytest_cache/**", "**/.mypy_cache/**",
+    "**/.ruff_cache/**", "**/.coverage", "**/htmlcov/**", f"{_SUPPORT_REL}/**",
+    "se_support_helper_test.py",
+)
+PATCH_EXTRACTOR_VERSION = "2"
 
 
 def docker_host_env(env: dict | None = None) -> dict:
@@ -77,18 +93,29 @@ class ContainerWorkspace:
         namespace: str = "swebench",
         env: dict | None = None,
         idle_timeout: int = 7200,
+        support_mount: Path | str | None = None,
     ) -> ContainerWorkspace:
         e = docker_host_env(env)
         image = instance_image_name(instance_id, namespace)
-        proc = subprocess.run(
-            ["docker", "run", "-d", "--network", "none", image,
-             "sleep", str(idle_timeout)],
-            capture_output=True, text=True, env=e,
-        )
+        argv = ["docker", "run", "-d", "--network", "none"]
+        if support_mount is not None:
+            # Read-only bind mount: the frozen support artifacts (e.g. the C2
+            # helper) are experiment INPUT the agent may read but cannot mutate,
+            # and which never enters the repo git tree / final patch.
+            src = Path(support_mount).resolve()
+            argv += ["--mount", f"type=bind,src={src},dst={_SUPPORT_DIR},readonly"]
+        argv += [image, "sleep", str(idle_timeout)]
+        proc = subprocess.run(argv, capture_output=True, text=True, env=e)
         if proc.returncode != 0:
             raise RuntimeError(f"failed to start container for {instance_id}: {proc.stderr}")
         cid = proc.stdout.strip()
-        return cls(cid, run_dir, e)
+        ws = cls(cid, run_dir, e)
+        if support_mount is not None:
+            # Keep the mount point out of git entirely (defense in depth alongside
+            # the filtered patch extractor).
+            ws._testbed(f"grep -qxF '{_SUPPORT_REL}/' .git/info/exclude 2>/dev/null || "
+                        f"echo '{_SUPPORT_REL}/' >> .git/info/exclude; true")
+        return ws
 
     def close(self) -> None:
         subprocess.run(["docker", "rm", "-f", self.cid],
@@ -143,15 +170,96 @@ class ContainerWorkspace:
         self._testbed("git checkout -- . 2>/dev/null; git clean -fdq 2>/dev/null; true")
 
     def final_diff(self) -> str:
-        proc = self._testbed(
-            "git add -A -- . ':(exclude)**/__pycache__/**' ':(exclude)**/*.pyc' 2>/dev/null; "
-            "git diff --cached HEAD"
+        """Safe patch extraction (integrity fix).
+
+        Builds the diff in a **temporary git index** (``GIT_INDEX_FILE``) seeded
+        from HEAD so the repo's real index is never mutated, and excludes the
+        read-only support mount, the legacy helper file, and ephemeral caches.
+        The returned patch contains only the agent's real repository edits.
+        """
+        patch, _ = self.final_diff_with_manifest()
+        return patch
+
+    def final_diff_with_manifest(self) -> tuple[str, dict]:
+        """Return ``(patch, manifest)``; manifest records included/excluded paths."""
+        excludes = " ".join(f"':(exclude){g}'" for g in _EPHEMERAL_GLOBS)
+        # Use an isolated temp index so we never touch the real .git/index.
+        script = (
+            "export GIT_INDEX_FILE=/tmp/.se_final_index; rm -f $GIT_INDEX_FILE; "
+            "git read-tree HEAD; "
+            f"git add -A -- . {excludes} 2>/dev/null; "
+            "git diff --cached --binary HEAD; "
+            "rm -f $GIT_INDEX_FILE"
         )
-        return proc.stdout
+        proc = self._testbed(script)
+        patch = proc.stdout
+        # Manifest: which paths the temp index actually staged (name-only).
+        name_script = (
+            "export GIT_INDEX_FILE=/tmp/.se_names_index; rm -f $GIT_INDEX_FILE; "
+            "git read-tree HEAD; "
+            f"git add -A -- . {excludes} 2>/dev/null; "
+            "git diff --cached --name-status HEAD; "
+            "rm -f $GIT_INDEX_FILE"
+        )
+        names = self._testbed(name_script).stdout
+        included = [ln.split("\t", 1)[-1].strip()
+                    for ln in names.splitlines() if ln.strip()]
+        import hashlib
+
+        manifest = {
+            "extractor_version": PATCH_EXTRACTOR_VERSION,
+            "included_paths": included,
+            "excluded_globs": list(_EPHEMERAL_GLOBS),
+            "patch_sha256": hashlib.sha256(patch.encode()).hexdigest(),
+            "helper_leak": any(
+                p in ("se_support_helper_test.py",) or p.startswith(f"{_SUPPORT_REL}/")
+                for p in included
+            ),
+        }
+        return patch, manifest
+
+    # -- integrity: git-state snapshots + helper hashing ----------------------
+    def git_state(self) -> dict:
+        """Structured snapshot of the repo working-tree state (integrity check)."""
+        import hashlib
+
+        porcelain = self._testbed("git status --porcelain=v1 -uall").stdout
+        head = self._testbed("git rev-parse HEAD 2>/dev/null").stdout.strip()
+        tracked, untracked = [], []
+        for ln in porcelain.splitlines():
+            if not ln.strip():
+                continue
+            code, path = ln[:2], ln[3:].strip()
+            (untracked if code == "??" else tracked).append(path)
+        # A path is "unexplained" if it is not on the ephemeral/support allowlist.
+        allow = (".se_support/", "se_support_helper_test.py")
+        eph = ("__pycache__", ".pyc", ".pytest_cache", ".mypy_cache",
+               ".ruff_cache", ".coverage", "htmlcov")
+        def _allowed(p: str) -> bool:
+            return p.startswith(allow) or any(e in p for e in eph)
+        dirty = [p for p in (tracked + untracked) if not _allowed(p)]
+        return {
+            "head": head,
+            "porcelain_sha256": hashlib.sha256(porcelain.encode()).hexdigest(),
+            "tracked_changes": tracked,
+            "untracked_files": untracked,
+            "unexplained_changes": dirty,
+            "clean": not dirty,
+        }
+
+    def helper_sha256(self) -> str | None:
+        """SHA-256 of the mounted helper as seen inside the container (or None)."""
+        proc = self._exec(f"sha256sum {HELPER_MOUNT_PATH} 2>/dev/null | cut -d' ' -f1")
+        out = proc.stdout.strip()
+        return out or None
 
     # -- C2 helper injection --------------------------------------------------
     def inject_file(self, container_path: str, content: str) -> None:
-        """Write ``content`` to ``container_path`` inside the container."""
+        """Write ``content`` to ``container_path`` inside the container.
+
+        Deprecated for the C2 helper (now delivered via a read-only mount); kept
+        for other uses. Never use this to place the helper in the git tree.
+        """
         import base64
 
         b64 = base64.b64encode(content.encode()).decode()

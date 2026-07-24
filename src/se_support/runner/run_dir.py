@@ -118,6 +118,7 @@ class RunDirectory:
     # -- whole-object writers ------------------------------------------------
     def write_model(self, filename: str, model: SEModel) -> Path:
         target = self.path / filename
+        target.parent.mkdir(parents=True, exist_ok=True)
         target.write_text(model.model_dump_json(indent=2) + "\n", encoding="utf-8")
         return target
 
@@ -129,6 +130,7 @@ class RunDirectory:
 
     def write_json(self, filename: str, obj: Any) -> Path:
         target = self.path / filename
+        target.parent.mkdir(parents=True, exist_ok=True)
         target.write_text(json.dumps(obj, indent=2) + "\n", encoding="utf-8")
         return target
 

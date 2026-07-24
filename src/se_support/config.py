@@ -26,7 +26,10 @@ SUPPORT_CONDITIONS: tuple[str, ...] = (
 # bumps when the definition/implementation of any C0-C6 support artifact changes.
 # Both are recorded on every RunSpec so results can be grouped by the exact
 # construct definitions that produced them.
-PROTOCOL_VERSION: str = "2026-07-21"
+# 0.3.0: experiment-integrity fix -- read-only helper mount, clean-tree S0/S1/S2
+# invariants, and safe filtered patch extraction. NOT comparable with prior
+# (date-tagged) runs whose patches could include the helper artifact.
+PROTOCOL_VERSION: str = "0.3.0"
 CONDITION_VERSION: str = "0.2.0"
 
 

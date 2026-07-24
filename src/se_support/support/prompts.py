@@ -85,11 +85,12 @@ def build_system_prompt(
         if tests_art is not None and tests_art.status == "present" and tests_art.content:
             parts.append(
                 "\n## Reproduction test (helper)\n"
-                "A reproduction test for this issue is available at "
-                "`se_support_helper_test.py` in the repo root. Run it with "
-                "`python -m pytest se_support_helper_test.py` to check your fix. "
-                "It should FAIL before your fix and PASS after. It is a helper, "
-                "not the grader; do not edit it.\n\n```python\n"
+                "A reproduction test for this issue is available (read-only) at "
+                "`.se_support/helper_test.py`. Run it with "
+                "`python -m pytest .se_support/helper_test.py` to check your fix. "
+                "It should FAIL before your fix and PASS after. It is a read-only "
+                "helper, not the grader; you cannot and must not edit it, and it is "
+                "not part of your submission.\n\n```python\n"
                 + tests_art.content + "\n```"
             )
     if condition.harness:
