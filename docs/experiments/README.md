@@ -26,5 +26,7 @@ machine artifacts under `runs/` and `results/`.
 | 006 | formal01 | Formal-standard C0 vs C6 with 7B | done (6/12) |
 | 007 | ablation01 | Full C0–C6 ablation with qwen3.7-plus (302.ai) | done |
 | 008 | ablation02 | Scaled C0–C6 ablation (12 tasks × 5 repos) | done |
-| 009A | exp009a_t25 | Full-stack budget & orchestration diagnosis | DONE — harness (C4) is C6's deficit driver; budget (C6@50) does not recover resolution |
-| 010 | exp010_c2xc3 | C2×C3 2×2 (helper tests × gates) on 7 T3/T4 tasks, 3 seeds, frozen helpers | DONE — C2 & C3 each lift resolution 0.38→0.52; no stacking on resolution; C2_C3 lowest P2P regression (safety benefit) |
+| 009A | exp009a_t25 | Full-stack budget & orchestration diagnosis | DONE — harness (C4) is C6's deficit driver; budget (C6@50) does not recover resolution. See contamination audit (requests-1142 re-eval). |
+| 010 | exp010_c2xc3 | C2×C3 2×2 (helper tests × gates) on 7 T3/T4 tasks, 3 seeds, frozen helpers | DONE + **ERRATUM** (protocol 0.3.0): corrected C0 0.52, C2/C3/C2_C3 0.67; over-editing claim withdrawn. See `010_c2xc3_erratum.md`. |
+| 011 | integ_smoke | Integrity smoke (read-only helper mount, clean-tree, safe patch extraction) | DONE — all integrity invariants verified live; protocol 0.3.0 ready. See `011_integrity_smoke.md`. |
+| — | audit | Support-artifact contamination audit + sanitizer | DONE — `SUPPORT_CONTAMINATION_AUDIT.md`; 97/404 runs contaminated; sanitized + re-evaluated. |

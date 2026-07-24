@@ -161,6 +161,7 @@ def _row_from_outcome(cell: Cell, outcome) -> dict:
         "p2p": f"{ev.pass_to_pass_passed}/{ev.pass_to_pass_total}",
         "quality": str(outcome.quality_card.quality_level),
         "files_touched": outcome.quality_card.locality.files_touched,
+        "status": getattr(outcome, "status", "ok"),
         "run_dir": str(outcome.run_dir), "error": None,
     }
 

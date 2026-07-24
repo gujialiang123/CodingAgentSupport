@@ -99,14 +99,32 @@ The scheduler skips already-completed cells, so interrupted runs resume safely.
    (`tests/test_<stem>.py`); repos with monolithic test files (e.g. requests'
    `tests/test_requests.py`) may not map, so targeted tests pass trivially there.
 4. ✅ **DIAGNOSED (Exp 009A).** The enforced harness (C4) — not the turn budget —
-   drives C6's deficit for this model. C6−C4 recovers resolution (0.39→0.58) at
-   25 turns; doubling the budget (C6@50) does NOT recover resolution (0.39), only
-   converts timeouts to submitted-but-wrong patches. Harness needs redesign, not
-   more turns (see `docs/experiments/009A_budget_diagnosis.md`).
-5. **Analysis package (EP-10) not built**: McNemar/bootstrap paired tables,
+   drives C6's deficit for this model. C6−C4 recovers resolution (0.39→0.58; +0.28
+   after integrity re-eval) at 25 turns; doubling the budget (C6@50) does NOT
+   recover resolution (0.39), only converts timeouts to submitted-but-wrong
+   patches. Harness needs redesign, not more turns (`009A_budget_diagnosis.md`).
+5. ✅ **RESOLVED (integrity fix, protocol 0.3.0).** Root cause: the C2 helper was
+   written into the git tree at `/testbed/se_support_helper_test.py` and swept
+   into `final.patch` by `git add -A` (contaminating 97/404 historical runs); the
+   `psf/requests` base image also ships an untracked `build/lib/` tree that leaked
+   in and made **every** `requests-1142` patch fail to apply. Fixes: (a) helper is
+   resolved before container start and delivered as a **read-only bind mount** at
+   `/testbed/.se_support/helper_test.py` (write/delete fail; hash verified
+   before/after); (b) **clean-tree S0/S1/S2 snapshots** — modified-tracked or new
+   post-S0 untracked ⇒ `infrastructure_failure` (excluded from stats), pre-existing
+   base-image untracked recorded as baseline; (c) **safe patch extraction** in an
+   isolated `GIT_INDEX_FILE` temp index excluding support/build/cache paths, with a
+   hard no-leak assertion + `integrity/patch_manifest.json`; (d) full provenance in
+   `integrity/provenance.json`. Historical audit + sanitize + re-eval:
+   `scripts/audit_support_contamination.py`, `scripts/reeval_sanitized.py`. See
+   `010_c2xc3_erratum.md`, `010_requests1142_forensics.md`, `011_integrity_smoke.md`.
+   **Corrected Exp 010:** C0 0.52, C2/C3/C2_C3 0.67 (relative support effect +0.15
+   preserved; over-editing claim withdrawn; files_touched ~1). Future headline
+   runs must use protocol 0.3.0 and must not be mixed with earlier results.
+6. **Analysis package (EP-10) not built**: McNemar/bootstrap paired tables,
    quality-among-resolved, annotation sampler. Needed to produce paper tables.
-5. **Human annotation (E4)** needs annotators (codebook + double-coding + kappa).
-6. **Q3+ quality levels** require the mature rubric/human review (auto-capped at Q2).
+7. **Human annotation (E4)** needs annotators (codebook + double-coding + kappa).
+8. **Q3+ quality levels** require the mature rubric/human review (auto-capped at Q2).
 
 ## 6. Where results and context live
 
