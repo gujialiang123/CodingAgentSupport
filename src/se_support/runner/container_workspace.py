@@ -169,20 +169,22 @@ class ContainerWorkspace:
     def revert_all(self) -> None:
         self._testbed("git checkout -- . 2>/dev/null; git clean -fdq 2>/dev/null; true")
 
-    def final_diff(self) -> str:
+    def final_diff(self, extra_excludes=None) -> str:
         """Safe patch extraction (integrity fix).
 
         Builds the diff in a **temporary git index** (``GIT_INDEX_FILE``) seeded
         from HEAD so the repo's real index is never mutated, and excludes the
-        read-only support mount, the legacy helper file, and ephemeral caches.
-        The returned patch contains only the agent's real repository edits.
+        read-only support mount, the legacy helper file, ephemeral caches, and any
+        pre-existing base-image untracked paths (``extra_excludes``). The returned
+        patch contains only the agent's real repository edits.
         """
-        patch, _ = self.final_diff_with_manifest()
+        patch, _ = self.final_diff_with_manifest(extra_excludes=extra_excludes)
         return patch
 
-    def final_diff_with_manifest(self) -> tuple[str, dict]:
+    def final_diff_with_manifest(self, extra_excludes=None) -> tuple[str, dict]:
         """Return ``(patch, manifest)``; manifest records included/excluded paths."""
-        excludes = " ".join(f"':(exclude){g}'" for g in _EPHEMERAL_GLOBS)
+        globs = list(_EPHEMERAL_GLOBS) + [f"{p}" for p in (extra_excludes or [])]
+        excludes = " ".join(f"':(exclude){g}'" for g in globs)
         # Use an isolated temp index so we never touch the real .git/index.
         script = (
             "export GIT_INDEX_FILE=/tmp/.se_final_index; rm -f $GIT_INDEX_FILE; "
@@ -209,7 +211,7 @@ class ContainerWorkspace:
         manifest = {
             "extractor_version": PATCH_EXTRACTOR_VERSION,
             "included_paths": included,
-            "excluded_globs": list(_EPHEMERAL_GLOBS),
+            "excluded_globs": globs,
             "patch_sha256": hashlib.sha256(patch.encode()).hexdigest(),
             "helper_leak": any(
                 p in ("se_support_helper_test.py",) or p.startswith(f"{_SUPPORT_REL}/")
@@ -219,8 +221,18 @@ class ContainerWorkspace:
         return patch, manifest
 
     # -- integrity: git-state snapshots + helper hashing ----------------------
-    def git_state(self) -> dict:
-        """Structured snapshot of the repo working-tree state (integrity check)."""
+    def git_state(self, baseline_untracked=None, strict_untracked: bool = True) -> dict:
+        """Structured snapshot of the repo working-tree state (integrity check).
+
+        Distinguishes two kinds of dirt:
+        * **modified/deleted TRACKED** files -> always suspicious (image tampering
+          or support/setup mutation of real source);
+        * **untracked** files -> at container start (S0) these are benign base-image
+          artifacts (e.g. a shipped ``build/lib/`` tree). They are recorded as the
+          baseline and excluded from the agent patch. New untracked files that
+          appear *after* S0 (``strict_untracked=True`` with a baseline) mean our
+          own setup created files and ARE flagged.
+        """
         import hashlib
 
         porcelain = self._testbed("git status --porcelain=v1 -uall").stdout
@@ -231,20 +243,24 @@ class ContainerWorkspace:
                 continue
             code, path = ln[:2], ln[3:].strip()
             (untracked if code == "??" else tracked).append(path)
-        # A path is "unexplained" if it is not on the ephemeral/support allowlist.
-        allow = (".se_support/", "se_support_helper_test.py")
+        allow = (f"{_SUPPORT_REL}/", "se_support_helper_test.py")
         eph = ("__pycache__", ".pyc", ".pytest_cache", ".mypy_cache",
                ".ruff_cache", ".coverage", "htmlcov")
         def _allowed(p: str) -> bool:
             return p.startswith(allow) or any(e in p for e in eph)
-        dirty = [p for p in (tracked + untracked) if not _allowed(p)]
+        baseline = set(baseline_untracked or [])
+        bad_tracked = [p for p in tracked if not _allowed(p)]
+        bad_untracked = ([p for p in untracked if not _allowed(p) and p not in baseline]
+                         if strict_untracked else [])
+        unexplained = bad_tracked + bad_untracked
         return {
             "head": head,
             "porcelain_sha256": hashlib.sha256(porcelain.encode()).hexdigest(),
             "tracked_changes": tracked,
             "untracked_files": untracked,
-            "unexplained_changes": dirty,
-            "clean": not dirty,
+            "base_untracked": sorted(baseline),
+            "unexplained_changes": unexplained,
+            "clean": not unexplained,
         }
 
     def helper_sha256(self) -> str | None:

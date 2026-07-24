@@ -241,12 +241,16 @@ def _run_body(
     helper_host_sha=None,
 ) -> RunOutcome:
     # Integrity: S0 snapshot immediately after the container starts (before any
-    # support setup). The base tree must be clean here.
+    # support setup). Modified TRACKED files here mean a tampered image (abort);
+    # pre-existing UNTRACKED files (e.g. a shipped build/lib tree) are benign
+    # base-image state -- recorded as a baseline and excluded from the agent patch.
+    base_untracked = []
     if use_container:
-        s0 = container.git_state()
+        s0 = container.git_state(strict_untracked=False)
         rd.write_json("integrity/git_state_s0.json", s0)
         if not s0["clean"]:
             return _infrastructure_failure(rd, run_id, "S0_CONTAINER_START", s0, task)
+        base_untracked = s0["untracked_files"]
 
     # EP-02: generate the frozen support bundle before the agent starts. The C2
     # helper (if any) was resolved BEFORE container start and is mounted read-only
@@ -289,7 +293,7 @@ def _run_body(
     # agent runs. The tree must still be clean -- otherwise support setup (or a
     # dirty image) mutated the repo and the run is infrastructure, not agent.
     if use_container:
-        s1 = container.git_state()
+        s1 = container.git_state(baseline_untracked=base_untracked, strict_untracked=True)
         rd.write_json("integrity/git_state_s1.json", s1)
         if not s1["clean"]:
             return _infrastructure_failure(rd, run_id, "S1_PRE_AGENT", s1, task)
@@ -300,8 +304,10 @@ def _run_body(
     agent.run(task, condition, agent_ws, rd)
 
     if use_container:
-        final_diff, patch_manifest = agent_ws.final_diff_with_manifest()
-        s2 = container.git_state()
+        final_diff, patch_manifest = agent_ws.final_diff_with_manifest(
+            extra_excludes=base_untracked
+        )
+        s2 = container.git_state(baseline_untracked=base_untracked, strict_untracked=True)
         rd.write_json("integrity/git_state_s2.json", s2)
         rd.write_json("integrity/patch_manifest.json", patch_manifest)
         if helper_host_sha is not None:
