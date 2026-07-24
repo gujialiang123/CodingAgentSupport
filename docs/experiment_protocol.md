@@ -1,5 +1,11 @@
 # Experiment Protocol
 
+> **Current freeze:** protocol `0.3.1`, condition `0.2.0`. See
+> [`PROTOCOL_0.3.1_FREEZE.md`](PROTOCOL_0.3.1_FREEZE.md) for the frozen E1
+> definition. Pre-0.3 runs are **not** poolable with 0.3.x (helper/build-artifact
+> contamination fixed at 0.3.0; helper-hash hard invariant added at 0.3.1). The
+> new E1 study uses the pinned Qwen model and a new task cohort (D0 excluded).
+
 This document records the **decisions** for how the SE-Support Study is run:
 datasets, agents, models, conditions, and metrics. It complements the proposal
 (which is the full rationale) by stating what we *actually do*.

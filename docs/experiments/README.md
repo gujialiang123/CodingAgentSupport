@@ -30,3 +30,7 @@ machine artifacts under `runs/` and `results/`.
 | 010 | exp010_c2xc3 | C2×C3 2×2 (helper tests × gates) on 7 T3/T4 tasks, 3 seeds, frozen helpers | DONE + **ERRATUM** (protocol 0.3.0): corrected C0 0.52, C2/C3/C2_C3 0.67; over-editing claim withdrawn. See `010_c2xc3_erratum.md`. |
 | 011 | integ_smoke | Integrity smoke (read-only helper mount, clean-tree, safe patch extraction) | DONE — all integrity invariants verified live; protocol 0.3.0 ready. See `011_integrity_smoke.md`. |
 | — | audit | Support-artifact contamination audit + sanitizer | DONE — `SUPPORT_CONTAMINATION_AUDIT.md`; 97/404 runs contaminated; sanitized + re-evaluated. |
+| 012 | — | Protocol 0.3.1 preflight audit + four-cell integrity smoke | Preflight DONE (`012_protocol031_preflight.md`); four-cell smoke `012_integrity_four_cell_smoke.md`. |
+| 013 | — | Qwen `qwen3-coder-30b-a3b-instruct` model freeze + D0 qualification | `013_qwen_model_qualification.md`. |
+| 014 | — | E1 helper feasibility on 40 new tasks (T0–T4) | `014_e1_helper_feasibility.md`. |
+| 015 | exp015_e1_c2xc3_qwen_openweight | **E1 primary** C2×C3 on 20 new T3/T4 tasks × 1 seed (protocol 0.3.1, Qwen 30B) | `015_e1_c2xc3_qwen_openweight.md`. |

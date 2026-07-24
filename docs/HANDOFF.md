@@ -1,5 +1,12 @@
 # Handoff: running large-model experiments
 
+> **Protocol 0.3.1 (current).** Integrity repaired (read-only helper mount,
+> clean-tree S0/S1/S2, safe patch extraction, helper-hash HARD invariant). The
+> old 12 tasks are the **D0** development set and are excluded from confirmatory
+> estimates. The next formal study (E1) is a new-task C2×C3 experiment on the
+> pinned Qwen model `qwen3-coder-30b-a3b-instruct` (302.ai). No pre-0.3 run may be
+> pooled with 0.3.x. See `PROTOCOL_0.3.1_FREEZE.md`.
+
 This document is the context needed to resume the SE-Support Study on a
 bigger-GPU machine and run the real confirmatory experiments. It complements
 `EXPERIMENT_PLAN_2026-07-21.md` (the protocol) and
