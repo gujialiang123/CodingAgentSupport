@@ -45,6 +45,62 @@ _EPHEMERAL_GLOBS = (
 PATCH_EXTRACTOR_VERSION = "2"
 
 
+def classify_git_state(porcelain: str, head: str = "", baseline_untracked=None,
+                       strict_untracked: bool = True) -> dict:
+    """Pure classifier for ``git status --porcelain=v1 -uall`` output.
+
+    Modified/deleted TRACKED files are always suspicious; untracked files are
+    benign at S0 (recorded as baseline) and only flagged at S1+ when they appear
+    beyond the baseline. Extracted as a pure function so it is unit-testable
+    without a container.
+    """
+    import hashlib
+
+    tracked, untracked = [], []
+    for ln in porcelain.splitlines():
+        if not ln.strip():
+            continue
+        code, path = ln[:2], ln[3:].strip()
+        (untracked if code == "??" else tracked).append(path)
+    allow = (f"{_SUPPORT_REL}/", "se_support_helper_test.py")
+    eph = ("__pycache__", ".pyc", ".pytest_cache", ".mypy_cache",
+           ".ruff_cache", ".coverage", "htmlcov")
+
+    def _allowed(p: str) -> bool:
+        return p.startswith(allow) or any(e in p for e in eph)
+
+    baseline = set(baseline_untracked or [])
+    bad_tracked = [p for p in tracked if not _allowed(p)]
+    bad_untracked = ([p for p in untracked if not _allowed(p) and p not in baseline]
+                     if strict_untracked else [])
+    unexplained = bad_tracked + bad_untracked
+    return {
+        "head": head,
+        "porcelain_sha256": hashlib.sha256(porcelain.encode()).hexdigest(),
+        "tracked_changes": tracked,
+        "untracked_files": untracked,
+        "base_untracked": sorted(baseline),
+        "unexplained_changes": unexplained,
+        "clean": not unexplained,
+    }
+
+
+def build_patch_manifest(patch: str, included_paths: list[str], globs: list[str]) -> dict:
+    """Pure builder for the patch manifest incl. the helper-leak assertion."""
+    import hashlib
+
+    return {
+        "extractor_version": PATCH_EXTRACTOR_VERSION,
+        "included_paths": included_paths,
+        "excluded_globs": globs,
+        "patch_sha256": hashlib.sha256(patch.encode()).hexdigest(),
+        "helper_leak": any(
+            p == "se_support_helper_test.py" or p.startswith(f"{_SUPPORT_REL}/")
+            for p in included_paths
+        ),
+    }
+
+
 def docker_host_env(env: dict | None = None) -> dict:
     e = dict(os.environ)
     e.setdefault("DOCKER_HOST", f"unix:///run/user/{os.getuid()}/docker.sock")
@@ -206,18 +262,7 @@ class ContainerWorkspace:
         names = self._testbed(name_script).stdout
         included = [ln.split("\t", 1)[-1].strip()
                     for ln in names.splitlines() if ln.strip()]
-        import hashlib
-
-        manifest = {
-            "extractor_version": PATCH_EXTRACTOR_VERSION,
-            "included_paths": included,
-            "excluded_globs": globs,
-            "patch_sha256": hashlib.sha256(patch.encode()).hexdigest(),
-            "helper_leak": any(
-                p in ("se_support_helper_test.py",) or p.startswith(f"{_SUPPORT_REL}/")
-                for p in included
-            ),
-        }
+        manifest = build_patch_manifest(patch, included, globs)
         return patch, manifest
 
     # -- integrity: git-state snapshots + helper hashing ----------------------
@@ -233,35 +278,9 @@ class ContainerWorkspace:
           appear *after* S0 (``strict_untracked=True`` with a baseline) mean our
           own setup created files and ARE flagged.
         """
-        import hashlib
-
         porcelain = self._testbed("git status --porcelain=v1 -uall").stdout
         head = self._testbed("git rev-parse HEAD 2>/dev/null").stdout.strip()
-        tracked, untracked = [], []
-        for ln in porcelain.splitlines():
-            if not ln.strip():
-                continue
-            code, path = ln[:2], ln[3:].strip()
-            (untracked if code == "??" else tracked).append(path)
-        allow = (f"{_SUPPORT_REL}/", "se_support_helper_test.py")
-        eph = ("__pycache__", ".pyc", ".pytest_cache", ".mypy_cache",
-               ".ruff_cache", ".coverage", "htmlcov")
-        def _allowed(p: str) -> bool:
-            return p.startswith(allow) or any(e in p for e in eph)
-        baseline = set(baseline_untracked or [])
-        bad_tracked = [p for p in tracked if not _allowed(p)]
-        bad_untracked = ([p for p in untracked if not _allowed(p) and p not in baseline]
-                         if strict_untracked else [])
-        unexplained = bad_tracked + bad_untracked
-        return {
-            "head": head,
-            "porcelain_sha256": hashlib.sha256(porcelain.encode()).hexdigest(),
-            "tracked_changes": tracked,
-            "untracked_files": untracked,
-            "base_untracked": sorted(baseline),
-            "unexplained_changes": unexplained,
-            "clean": not unexplained,
-        }
+        return classify_git_state(porcelain, head, baseline_untracked, strict_untracked)
 
     def helper_sha256(self) -> str | None:
         """SHA-256 of the mounted helper as seen inside the container (or None)."""

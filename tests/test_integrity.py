@@ -1,0 +1,63 @@
+"""Tests for the experiment-integrity fixes (helper isolation, clean-tree,
+safe patch extraction). Pure-function tests here; the live read-only mount and
+git-index extractor are covered by the integrity smoke run (docs 011)."""
+
+from __future__ import annotations
+
+from se_support.runner.container_workspace import (
+    build_patch_manifest,
+    classify_git_state,
+)
+
+
+def test_s0_untracked_build_dir_is_benign():
+    # SWE-bench base image ships an untracked build/lib tree -> not a failure at S0.
+    porcelain = "\n".join(f"?? build/lib/requests/{n}.py" for n in ("a", "b", "c"))
+    s0 = classify_git_state(porcelain, strict_untracked=False)
+    assert s0["clean"] is True
+    assert len(s0["untracked_files"]) == 3
+    assert s0["tracked_changes"] == []
+
+
+def test_s1_new_untracked_beyond_baseline_is_flagged():
+    base = ["build/lib/requests/a.py"]
+    # a new untracked file (not in baseline) appears -> infrastructure failure.
+    porcelain = "?? build/lib/requests/a.py\n?? support_leaked_file.py"
+    s1 = classify_git_state(porcelain, baseline_untracked=base, strict_untracked=True)
+    assert s1["clean"] is False
+    assert "support_leaked_file.py" in s1["unexplained_changes"]
+    assert "build/lib/requests/a.py" not in s1["unexplained_changes"]
+
+
+def test_modified_tracked_file_is_always_flagged():
+    s = classify_git_state(" M requests/models.py", strict_untracked=False)
+    assert s["clean"] is False
+    assert "requests/models.py" in s["unexplained_changes"]
+
+
+def test_support_and_ephemeral_paths_are_allowed():
+    porcelain = (
+        "?? .se_support/helper_test.py\n"
+        "?? requests/__pycache__/models.cpython-311.pyc\n"
+        "?? .pytest_cache/v/cache/lastfailed"
+    )
+    s = classify_git_state(porcelain, strict_untracked=True)
+    assert s["clean"] is True
+
+
+def test_patch_manifest_flags_helper_leak():
+    m = build_patch_manifest("diff...", ["requests/models.py",
+                                         "se_support_helper_test.py"], [])
+    assert m["helper_leak"] is True
+
+
+def test_patch_manifest_flags_mounted_helper_leak():
+    m = build_patch_manifest("diff...", [".se_support/helper_test.py"], [])
+    assert m["helper_leak"] is True
+
+
+def test_patch_manifest_clean_agent_edit():
+    m = build_patch_manifest("diff...", ["requests/models.py"], ["**/*.pyc"])
+    assert m["helper_leak"] is False
+    assert m["included_paths"] == ["requests/models.py"]
+    assert m["patch_sha256"]
