@@ -45,7 +45,7 @@ from se_support.support.harness import HarnessStateMachine
 
 _BASH_RE = re.compile(r"```bash\s*\n(.*?)```", re.DOTALL)
 _MAX_OBS = 4000
-_MAX_BLOCKS_PER_MSG = 10
+_MAX_BLOCKS_PER_MSG = 5
 
 # Harness (C4) directives parsed from the agent's message.
 _NEXT_STATE_RE = re.compile(r"^NEXT_STATE:\s*([A-Z]+)\s*$", re.MULTILINE)
@@ -57,7 +57,8 @@ _RECORD_RES = {
 
 
 class LLMAgent:
-    def __init__(self, client: ChatClient, max_turns: int = 20, sandbox_policy=None) -> None:
+    def __init__(self, client: ChatClient, max_turns: int = 20, sandbox_policy=None,
+                 max_wall_time_sec: int = 900, history_window: int = 16) -> None:
         self.client = client
         self.max_turns = max_turns
         # When set, agent bash commands run under this sandbox policy (EP-01).
@@ -67,6 +68,10 @@ class LLMAgent:
         # C3 gate policy (v2: repo-aware, targeted) + base-tree advisory baseline.
         self.gate_policy = gate_policy_v2()
         self.gate_baseline: dict = {}
+        # Bound worst-case run time and context growth (verbose models otherwise
+        # accumulate huge histories that slow the API to a crawl).
+        self.max_wall_time_sec = max_wall_time_sec
+        self.history_window = history_window
         self.name = f"llm_agent[{getattr(client, 'model', 'unknown')}]"
 
     def run(
@@ -92,7 +97,10 @@ class LLMAgent:
         submitted = False
         try:
             while step <= self.max_turns:
-                reply = self.client.complete(messages)
+                if time.time() - t0 > self.max_wall_time_sec:
+                    status = RunStatus.timeout
+                    break
+                reply = self.client.complete(self._trim_history(messages))
                 messages.append({"role": "assistant", "content": reply})
                 run_dir.append_transcript(
                     TranscriptEvent(step=step, role="assistant", content=reply)
@@ -227,6 +235,15 @@ class LLMAgent:
     def _extract_bash(reply: str) -> str | None:
         m = _BASH_RE.search(reply)
         return m.group(1).strip() if m else None
+
+    def _trim_history(self, messages: list[dict]) -> list[dict]:
+        """Bound the prompt: always keep the system message, then only the most
+        recent ``history_window`` messages. Prevents unbounded context growth (and
+        API slowdown) from verbose multi-command turns, uniformly across conditions.
+        """
+        if len(messages) <= self.history_window + 1:
+            return messages
+        return [messages[0]] + messages[-self.history_window:]
 
     @staticmethod
     def _extract_bash_blocks(reply: str) -> list[str]:

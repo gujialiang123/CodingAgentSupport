@@ -77,3 +77,26 @@ def test_llm_agent_no_fix_not_resolved(tmp_path):
         _task(), LLMAgent(client, max_turns=3), "C0_minimal", tmp_path, "exp", model="scripted"
     )
     assert outcome.eval_result.resolved is False
+
+
+def test_trim_history_keeps_system_and_recent():
+    from se_support.agents.llm_agent import LLMAgent
+
+    class _C:
+        model = "m"
+        def complete(self, messages): return "SUBMIT"
+    a = LLMAgent(_C(), history_window=4)
+    msgs = [{"role": "system", "content": "sys"}]
+    msgs += [{"role": "user", "content": str(i)} for i in range(10)]
+    trimmed = a._trim_history(msgs)
+    assert trimmed[0]["content"] == "sys"          # system always kept
+    assert len(trimmed) == 5                          # system + last 4
+    assert trimmed[-1]["content"] == "9"
+
+
+def test_extract_bash_blocks_multiple():
+    from se_support.agents.llm_agent import LLMAgent
+
+    reply = "plan\n```bash\nls\n```\nthen\n```bash\ncat x\n```\ndone"
+    blocks = LLMAgent._extract_bash_blocks(reply)
+    assert blocks == ["ls", "cat x"]

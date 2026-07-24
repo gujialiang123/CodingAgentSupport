@@ -1,0 +1,42 @@
+# Frozen model manifest for the E1 C2xC3 study (protocol 0.3.1).
+# NOTE: E1 runs against the 302.ai hosted OpenAI-compatible API per user directive
+# ("api地址和apikey不变"), NOT a self-served vLLM checkpoint. Weight-file SHAs and
+# the exact HF revision are therefore NOT verifiable from the API — see the
+# limitation section in docs/MODEL_FREEZE_QWEN3_CODER_E1.md.
+
+model_id: qwen3-coder-30b-a3b-instruct        # server "model" field asserted per call
+family: Qwen3-Coder-30B-A3B-Instruct          # intended open-weight family (Apache-2.0)
+serving:
+  provider: 302.ai
+  endpoint: https://api.302.ai/v1             # OpenAI-compatible
+  api_key_env: SE_API_KEY                      # NEVER commit the key; pass via --api-key/env
+  weight_provenance: unavailable_via_api       # cannot pin weight SHA / HF revision over API
+
+inference:
+  temperature: 0.0
+  top_p: default_server                         # not overridden by the client
+  max_output_tokens: 4096
+  seed: none_sent                               # OpenAI seed param not sent; determinism via temp=0 only
+  stop_sequences: none
+  command_format: plaintext_bash_blocks         # ```bash ...``` blocks; multi-block per message executed in order
+
+context:
+  model_max_context: unknown_via_api            # family supports up to 256K; not asserted here
+  experiment_input_policy: uniform_all_conditions
+  observation_truncation_chars: 4000            # _MAX_OBS in llm_agent (bounds history growth)
+  # The same budget/truncation applies identically to C0/C2/C3/C2_C3, so context
+  # exposure is uniform across conditions (the requirement), even though a single
+  # hard token cap is not enforced client-side.
+
+budget:
+  max_turns: 25
+  max_blocks_per_message: 10
+  gate_revision_budget: 3
+  official_eval_timeout_sec: 1800
+
+scaffold:
+  agent: llm_agent
+  protocol_version: "0.3.1"
+  condition_version: "0.2.0"
+  in_container: true
+  network: none
