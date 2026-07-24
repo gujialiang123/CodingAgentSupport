@@ -87,6 +87,27 @@ class ConditionSummary:
         return self.resolved / self.n if self.n else 0.0
 
 
+def p2p_regression_stats(evals: list[dict]) -> dict:
+    """Correct PASS_TO_PASS regression stats over per-run eval dicts (Phase 1C).
+
+    Denominator = applying patches with a usable P2P result (patch_applies and
+    ``pass_to_pass_total`` > 0). A regression = at least one PASS_TO_PASS test
+    failed (``pass_to_pass_passed`` < ``pass_to_pass_total``). Runs whose P2P is
+    unavailable are reported separately, never silently folded into the rate.
+    """
+    applying = [e for e in evals if e.get("patch_applies")]
+    usable = [e for e in applying if (e.get("pass_to_pass_total") or 0) > 0]
+    regressing = [e for e in usable
+                  if (e.get("pass_to_pass_passed") or 0) < (e.get("pass_to_pass_total") or 0)]
+    missing = [e for e in applying if not ((e.get("pass_to_pass_total") or 0) > 0)]
+    rate = (len(regressing) / len(usable)) if usable else None
+    return {
+        "applying": len(applying), "p2p_usable": len(usable),
+        "p2p_regressing": len(regressing), "p2p_missing": len(missing),
+        "p2p_regression_rate": round(rate, 3) if rate is not None else None,
+    }
+
+
 def summarize_by_condition(rows: list[RunRow]) -> list[ConditionSummary]:
     by = defaultdict(list)
     for r in rows:
