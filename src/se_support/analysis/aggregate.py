@@ -30,17 +30,22 @@ class RunRow:
     manipulation_passed: bool | None = None
 
 
-def load_runs(experiment_dir: Path, allow_mixed_protocol: bool = False) -> list[RunRow]:
+def load_runs(experiment_dir: Path, allow_mixed_protocol: bool = False,
+              allow_mixed_model: bool = False,
+              allow_mixed_condition_version: bool = False) -> list[RunRow]:
     """Load all completed runs under ``runs/<experiment_id>/<experiment_id>/``.
 
-    Runs flagged ``infrastructure_failure`` (unclean base tree) are excluded — they
-    are invalid infrastructure, not agent outcomes. Refuses to aggregate across
-    differing ``protocol_version`` values unless ``allow_mixed_protocol`` is set
-    (integrity fix, Phase 5: 0.3.0 results are not comparable with earlier ones).
+    Runs flagged ``infrastructure_failure`` (unclean base tree / helper-hash
+    mismatch) are excluded — they are invalid infrastructure, not agent outcomes.
+    Refuses to aggregate across differing ``protocol_version``, ``model``, or
+    ``condition_version`` unless the matching ``allow_mixed_*`` flag is set (E1
+    freeze: 0.3.x / model / condition-version cohorts are not comparable).
     """
     experiment_dir = Path(experiment_dir)
     rows: list[RunRow] = []
     protocols: set[str] = set()
+    models: set[str] = set()
+    cond_versions: set[str] = set()
     for run_dir in sorted(experiment_dir.glob("*/")):
         qc = run_dir / "quality_card.json"
         ev = run_dir / "eval_result.json"
@@ -56,6 +61,8 @@ def load_runs(experiment_dir: Path, allow_mixed_protocol: bool = False) -> list[
                 pass
         spec = json.loads(rs.read_text())
         protocols.add(spec.get("protocol_version", "unknown"))
+        models.add(spec.get("model", "unknown"))
+        cond_versions.add(spec.get("condition_version", "unknown"))
         evalr = json.loads(ev.read_text())
         card = json.loads(qc.read_text())
         mc = run_dir / "manipulation.json"
@@ -68,8 +75,18 @@ def load_runs(experiment_dir: Path, allow_mixed_protocol: bool = False) -> list[
     if len(protocols) > 1 and not allow_mixed_protocol:
         raise ValueError(
             f"refusing to aggregate mixed protocol_versions {sorted(protocols)}; "
-            "0.3.0 (integrity-fixed) results are not comparable with earlier runs. "
+            "integrity-fixed results are not comparable with earlier runs. "
             "Pass allow_mixed_protocol=True to override."
+        )
+    if len(models) > 1 and not allow_mixed_model:
+        raise ValueError(
+            f"refusing to aggregate mixed models {sorted(models)}; different "
+            "checkpoints are not comparable. Pass allow_mixed_model=True to override."
+        )
+    if len(cond_versions) > 1 and not allow_mixed_condition_version:
+        raise ValueError(
+            f"refusing to aggregate mixed condition_versions {sorted(cond_versions)}; "
+            "pass allow_mixed_condition_version=True to override."
         )
     return rows
 

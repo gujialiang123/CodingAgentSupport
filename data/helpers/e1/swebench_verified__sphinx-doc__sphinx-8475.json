@@ -1,0 +1,17 @@
+{
+  "task_id": "swebench_verified__sphinx-doc__sphinx-8475",
+  "test_source": "",
+  "run_command": "python -m pytest helper_test.py",
+  "generator_model": "qwen3-coder-30b-a3b-instruct",
+  "prompt_hash": "sha256:82d9f8abf24e46204afb6a38061a19e9f2c1307cc757fce6d806c4cb377e8da9",
+  "candidate_index": 0,
+  "frozen_hash": null,
+  "collected": null,
+  "fail_before": null,
+  "pass_after_gold": null,
+  "classification": "T0_invalid",
+  "issue_provenance_ok": null,
+  "suspicious_literals": [],
+  "audit_passed": null,
+  "notes": "no runnable candidate"
+}
