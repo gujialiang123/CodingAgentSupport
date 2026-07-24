@@ -52,10 +52,20 @@ C6−C4     seed0:7/12  seed1:7/12  seed2:7/12
 
 ## 4. Diagnosis (25-turn block)
 
+> **Integrity note (protocol 0.3.0 re-eval):** these raw numbers included
+> `requests-1142` runs that failed to apply due to base-image `build/lib`
+> contamination. After sanitized re-evaluation the resolutions become **C0 0.69,
+> C4 0.56, C6 0.39, C6−C4 0.67**. Only the *no-harness* conditions (C0, C6−C4)
+> gain — the harness conditions (C4, C6) still score 0 on `requests-1142` because
+> they **timed out and produced no patch there**. This *strengthens* the
+> diagnosis: the C6−C4 vs C6 gap widens from +0.19 to **+0.28**. See
+> `SUPPORT_CONTAMINATION_AUDIT.md` and `results/exp009a_t25_reeval.jsonl`.
+
 1. **The enforced harness (C4) is the primary driver of C6's deficit.** Removing
    just the harness from the full stack (**C6−C4**) recovers resolution from
-   **0.39 → 0.58** (+0.19), back to ~C0/single-support level. The other four
-   supports stacked together (context+tests+gates+memory) do **not** hurt.
+   **0.39 → 0.58** (+0.19; +0.28 after re-eval), back to ~C0/single-support level.
+   The other four supports stacked together (context+tests+gates+memory) do
+   **not** hurt.
 2. **The mechanism is turn-budget exhaustion via the state protocol.** Timeout
    rate tracks the harness exactly: harness-on conditions (C4 58%, C6 67%) time
    out far more than harness-off (C0 22%, C6−C4 22%). The agent spends its budget
