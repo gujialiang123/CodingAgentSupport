@@ -1,0 +1,69 @@
+{
+  "C0_minimal": {
+    "applying": 7,
+    "mean_files_touched": 2.25,
+    "n": 8,
+    "p2p": {
+      "applying": 7,
+      "p2p_missing": 0,
+      "p2p_regressing": 4,
+      "p2p_regression_rate": 0.571,
+      "p2p_usable": 7
+    },
+    "resolution_rate": 0.125,
+    "resolved": 1
+  },
+  "C2_C3": {
+    "applying": 5,
+    "mean_files_touched": 1,
+    "n": 8,
+    "p2p": {
+      "applying": 5,
+      "p2p_missing": 0,
+      "p2p_regressing": 2,
+      "p2p_regression_rate": 0.4,
+      "p2p_usable": 5
+    },
+    "resolution_rate": 0.125,
+    "resolved": 1
+  },
+  "C2_tests": {
+    "applying": 7,
+    "mean_files_touched": 2.38,
+    "n": 8,
+    "p2p": {
+      "applying": 7,
+      "p2p_missing": 0,
+      "p2p_regressing": 5,
+      "p2p_regression_rate": 0.714,
+      "p2p_usable": 7
+    },
+    "resolution_rate": 0.125,
+    "resolved": 1
+  },
+  "C3_gates": {
+    "applying": 5,
+    "mean_files_touched": 1.38,
+    "n": 8,
+    "p2p": {
+      "applying": 5,
+      "p2p_missing": 0,
+      "p2p_regressing": 4,
+      "p2p_regression_rate": 0.8,
+      "p2p_usable": 5
+    },
+    "resolution_rate": 0.125,
+    "resolved": 1
+  },
+  "_meta": {
+    "experiment": "exp015_e1_c2xc3_qwen_openweight",
+    "gate_revisions": 28,
+    "helper_executed": "16/16",
+    "mcnemar": "0 discordant pairs for every support vs C0 (p=1.0)",
+    "model": "qwen3-coder-30b-a3b-instruct",
+    "n_tasks": 8,
+    "only_resolver": "pydata__xarray-4629 (resolved under all 4 conditions)",
+    "protocol": "0.3.1",
+    "seeds": 1
+  }
+}

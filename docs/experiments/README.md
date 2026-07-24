@@ -33,4 +33,4 @@ machine artifacts under `runs/` and `results/`.
 | 012 | — | Protocol 0.3.1 preflight audit + four-cell integrity smoke | Preflight DONE (`012_protocol031_preflight.md`); four-cell smoke `012_integrity_four_cell_smoke.md`. |
 | 013 | — | Qwen `qwen3-coder-30b-a3b-instruct` model freeze + D0 qualification | `013_qwen_model_qualification.md`. |
 | 014 | — | E1 helper feasibility on 40 new tasks (T0–T4) | `014_e1_helper_feasibility.md`. |
-| 015 | exp015_e1_c2xc3_qwen_openweight | **E1 primary** C2×C3 on 20 new T3/T4 tasks × 1 seed (protocol 0.3.1, Qwen 30B) | `015_e1_c2xc3_qwen_openweight.md`. |
+| 015 | exp015_e1_c2xc3_qwen_openweight | **E1 primary** C2×C3 on 8 new T3/T4 tasks × 1 seed (protocol 0.3.1, Qwen 30B) | DONE — floor effect: all conditions 1/8, only xarray-4629 resolves (all conds); manipulation OK (helper 16/16, gates 28 rev); NO-GO for 50-task pilot (model floors). `015_*`. |
