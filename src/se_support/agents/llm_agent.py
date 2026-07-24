@@ -45,6 +45,7 @@ from se_support.support.harness import HarnessStateMachine
 
 _BASH_RE = re.compile(r"```bash\s*\n(.*?)```", re.DOTALL)
 _MAX_OBS = 4000
+_MAX_BLOCKS_PER_MSG = 5
 
 # Harness (C4) directives parsed from the agent's message.
 _NEXT_STATE_RE = re.compile(r"^NEXT_STATE:\s*([A-Z]+)\s*$", re.MULTILINE)
@@ -56,7 +57,8 @@ _RECORD_RES = {
 
 
 class LLMAgent:
-    def __init__(self, client: ChatClient, max_turns: int = 20, sandbox_policy=None) -> None:
+    def __init__(self, client: ChatClient, max_turns: int = 20, sandbox_policy=None,
+                 max_wall_time_sec: int = 900, history_window: int = 16) -> None:
         self.client = client
         self.max_turns = max_turns
         # When set, agent bash commands run under this sandbox policy (EP-01).
@@ -66,6 +68,10 @@ class LLMAgent:
         # C3 gate policy (v2: repo-aware, targeted) + base-tree advisory baseline.
         self.gate_policy = gate_policy_v2()
         self.gate_baseline: dict = {}
+        # Bound worst-case run time and context growth (verbose models otherwise
+        # accumulate huge histories that slow the API to a crawl).
+        self.max_wall_time_sec = max_wall_time_sec
+        self.history_window = history_window
         self.name = f"llm_agent[{getattr(client, 'model', 'unknown')}]"
 
     def run(
@@ -91,7 +97,10 @@ class LLMAgent:
         submitted = False
         try:
             while step <= self.max_turns:
-                reply = self.client.complete(messages)
+                if time.time() - t0 > self.max_wall_time_sec:
+                    status = RunStatus.timeout
+                    break
+                reply = self.client.complete(self._trim_history(messages))
                 messages.append({"role": "assistant", "content": reply})
                 run_dir.append_transcript(
                     TranscriptEvent(step=step, role="assistant", content=reply)
@@ -106,19 +115,31 @@ class LLMAgent:
                             TranscriptEvent(step=step, role="tool", content=fb)
                         )
 
-                bash = self._extract_bash(reply)
-                if bash is not None:
-                    if self.sandbox_policy is not None:
-                        proc, _backend = workspace.run_sandboxed(
-                            bash, self.sandbox_policy, step=step
+                bash_blocks = self._extract_bash_blocks(reply)
+                if bash_blocks:
+                    # Some instruct models (e.g. Qwen3-Coder) emit their whole plan
+                    # as several ```bash``` blocks in one message and expect them all
+                    # to run. Execute them in order (capped) and feed back the
+                    # combined observation, so the scaffold is model-agnostic.
+                    obs_parts = []
+                    for b in bash_blocks[:_MAX_BLOCKS_PER_MSG]:
+                        if self.sandbox_policy is not None:
+                            proc, _backend = workspace.run_sandboxed(
+                                b, self.sandbox_policy, step=step
+                            )
+                        elif not hasattr(workspace, "_run"):
+                            proc, _backend = workspace.run_sandboxed(b, None, step=step)
+                        else:
+                            proc = workspace._run("bash", "-lc", b, step=step, check=False)
+                        out = (proc.stdout + proc.stderr)
+                        obs_parts.append(f"$ {b}\n[exit={proc.returncode}]\n{out}")
+                    obs_msg = "\n\n".join(obs_parts)[:_MAX_OBS]
+                    if len(bash_blocks) > _MAX_BLOCKS_PER_MSG:
+                        obs_msg += (
+                            f"\n[note] you sent {len(bash_blocks)} commands; only the "
+                            f"first {_MAX_BLOCKS_PER_MSG} ran. Send fewer per turn and "
+                            "iterate on the output before editing."
                         )
-                    elif not hasattr(workspace, "_run"):
-                        # Container workspace: always exec inside the container.
-                        proc, _backend = workspace.run_sandboxed(bash, None, step=step)
-                    else:
-                        proc = workspace._run("bash", "-lc", bash, step=step, check=False)
-                    obs = (proc.stdout + proc.stderr)[:_MAX_OBS]
-                    obs_msg = f"[exit={proc.returncode}]\n{obs}"
 
                     # EP-04: reject edits made outside PATCH/VALIDATE by reverting.
                     if harness is not None and not harness.can_edit() and workspace.is_dirty():
@@ -214,6 +235,19 @@ class LLMAgent:
     def _extract_bash(reply: str) -> str | None:
         m = _BASH_RE.search(reply)
         return m.group(1).strip() if m else None
+
+    def _trim_history(self, messages: list[dict]) -> list[dict]:
+        """Bound the prompt: always keep the system message, then only the most
+        recent ``history_window`` messages. Prevents unbounded context growth (and
+        API slowdown) from verbose multi-command turns, uniformly across conditions.
+        """
+        if len(messages) <= self.history_window + 1:
+            return messages
+        return [messages[0]] + messages[-self.history_window:]
+
+    @staticmethod
+    def _extract_bash_blocks(reply: str) -> list[str]:
+        return [b.strip() for b in _BASH_RE.findall(reply) if b.strip()]
 
     @staticmethod
     def _is_submit(reply: str) -> bool:

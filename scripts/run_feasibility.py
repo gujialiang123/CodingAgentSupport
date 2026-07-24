@@ -34,6 +34,8 @@ def main() -> int:
     ap.add_argument("--api-key", default="EMPTY")
     ap.add_argument("--experiment-id", default="feasib")
     ap.add_argument("--max-turns", type=int, default=20)
+    ap.add_argument("--max-wall-time", type=int, default=900,
+                    help="per-run agent wall-time cap (sec); bounds verbose runs")
     ap.add_argument("--seeds", type=int, nargs="+", default=[0])
     ap.add_argument("--output", default="runs")
     ap.add_argument("--results", default=None)
@@ -62,7 +64,8 @@ def main() -> int:
                                 api_key=args.api_key, max_tokens=args.max_tokens)
 
     def agent_factory():
-        return LLMAgent(make_client(), max_turns=args.max_turns)
+        return LLMAgent(make_client(), max_turns=args.max_turns,
+                        max_wall_time_sec=args.max_wall_time)
 
     # In container mode the container provides isolation (--network none); the
     # host bwrap sandbox is not applied to container exec.

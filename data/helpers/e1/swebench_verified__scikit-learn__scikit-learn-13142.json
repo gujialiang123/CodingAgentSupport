@@ -1,0 +1,17 @@
+{
+  "task_id": "swebench_verified__scikit-learn__scikit-learn-13142",
+  "test_source": "import numpy as np\nfrom sklearn.mixture import GaussianMixture\nfrom sklearn.utils.testing import assert_array_equal\n\ndef test_gaussian_mixture_predict_fit_predict_agreement():\n    \"\"\"Test that predict and fit_predict agree when n_init > 1\"\"\"\n    # Create test data\n    X = np.random.randn(1000, 5)\n    \n    # Test with n_init=5 (the problematic case)\n    gm = GaussianMixture(n_components=5, n_init=5)\n    c1 = gm.fit_predict(X)\n    c2 = gm.predict(X)\n    \n    # The bug causes these arrays to differ significantly\n    # Before fix: AssertionError due to mismatch\n    # After fix: Arrays should be equal\n    assert_array_equal(c1, c2)",
+  "run_command": "python -m pytest helper_test.py",
+  "generator_model": "qwen3-coder-30b-a3b-instruct",
+  "prompt_hash": "sha256:cb7418bb9ccbe4b3c17a904c430e016b1236495f3f82ac233a4e2f62c013ae2c",
+  "candidate_index": 0,
+  "frozen_hash": "sha256:02ebbe1f02368dfbb50577bea99b170bfff39971e35d6de9da3fce84e8c823bb",
+  "collected": true,
+  "fail_before": false,
+  "pass_after_gold": true,
+  "classification": "T1_non_reproducing",
+  "issue_provenance_ok": true,
+  "suspicious_literals": [],
+  "audit_passed": null,
+  "notes": ""
+}

@@ -57,15 +57,30 @@ support effect is preserved: C2 and C3 each still lift resolution over C0 by
 helper artifact, C2 touches ~1.1 files vs C0's ~1.0 — no meaningful difference.
 The raw 2.0-vs-1.1 gap was entirely the injected helper file.
 
-### P2P regression (unchanged conclusion)
+### P2P regression (recomputed from corrected data)
 
-C2_C3 still has the lowest P2P regression among applying patches (2/15 = 13% vs
-C0 4/14 = 29%). The safety benefit of helper+gates stands.
+Recomputed directly from `results/exp010_c2xc3_reeval.jsonl` + the sanitized
+per-run evals (not the old denominators). Denominator = applying patches with a
+usable PASS_TO_PASS result (`patch_applies` and P2P total > 0). A regression =
+≥1 PASS_TO_PASS test failed. Machine-readable: `exp010_c2xc3_corrected_summary.json`.
+
+| Condition | applying | P2P-usable | P2P-regressing | rate |
+|-----------|----------|------------|----------------|------|
+| C0_minimal | 20 | 17 | 4 | 0.24 |
+| C2_tests | 21 | 18 | 3 | 0.17 |
+| C3_gates | 21 | 18 | 4 | 0.22 |
+| C2_C3 | 21 | 18 | 2 | **0.11** |
+
+**C2_C3 had the lowest observed P2P-regression rate in this pilot** (2/18). With
+n=7 tasks this is directional only — it is **not** proof that helper+gates
+improves patch safety; it is a hypothesis to test on the new-task E1 cohort.
 
 ## Net effect on the study's claims
 
 - **Held:** C2 and C3 each individually help; helper and gates do not stack on
-  resolution; helper+gates give the safest patches (fewest P2P regressions).
+  resolution.
+- **Softened:** helper+gates had the *lowest observed* P2P-regression rate in
+  this pilot (2/18); with n=7 this is directional, not a proven safety effect.
 - **Withdrawn:** C2 causes broader edits / over-editing.
 - **Newly corrected:** absolute resolution is higher for all conditions once
   `requests-1142` is evaluable; C0 rises 0.38 → 0.52.

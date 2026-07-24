@@ -1,0 +1,118 @@
+{
+  "by_source": {
+    "tasks/formal_requests6.jsonl": [
+      "swebench_verified__psf__requests-1142",
+      "swebench_verified__psf__requests-1724",
+      "swebench_verified__psf__requests-1766",
+      "swebench_verified__psf__requests-1921",
+      "swebench_verified__psf__requests-2931",
+      "swebench_verified__psf__requests-5414"
+    ],
+    "tasks/ablation5.jsonl": [
+      "swebench_verified__psf__requests-1142",
+      "swebench_verified__psf__requests-1724",
+      "swebench_verified__psf__requests-1766",
+      "swebench_verified__psf__requests-1921",
+      "swebench_verified__psf__requests-2931"
+    ],
+    "tasks/swebench_verified.jsonl": [
+      "swebench_verified__astropy__astropy-12907",
+      "swebench_verified__astropy__astropy-13033",
+      "swebench_verified__astropy__astropy-13236"
+    ],
+    "tasks/ablation12.jsonl": [
+      "swebench_verified__pallets__flask-5014",
+      "swebench_verified__psf__requests-1142",
+      "swebench_verified__psf__requests-1724",
+      "swebench_verified__psf__requests-1766",
+      "swebench_verified__psf__requests-2931",
+      "swebench_verified__pydata__xarray-3677",
+      "swebench_verified__pydata__xarray-4966",
+      "swebench_verified__pylint-dev__pylint-4551",
+      "swebench_verified__pylint-dev__pylint-4604",
+      "swebench_verified__pytest-dev__pytest-10051",
+      "swebench_verified__pytest-dev__pytest-5809",
+      "swebench_verified__pytest-dev__pytest-7571"
+    ],
+    "tasks/pilot_requests.jsonl": [
+      "swebench_verified__psf__requests-1142",
+      "swebench_verified__psf__requests-1724"
+    ],
+    "tasks/ablation_t34.jsonl": [
+      "swebench_verified__pallets__flask-5014",
+      "swebench_verified__psf__requests-1142",
+      "swebench_verified__psf__requests-2931",
+      "swebench_verified__pydata__xarray-3677",
+      "swebench_verified__pylint-dev__pylint-4604",
+      "swebench_verified__pytest-dev__pytest-10051",
+      "swebench_verified__pytest-dev__pytest-7571"
+    ],
+    "runs": [
+      "swebench_verified__pallets__flask-5014",
+      "swebench_verified__psf__requests-1142",
+      "swebench_verified__psf__requests-1724",
+      "swebench_verified__psf__requests-1766",
+      "swebench_verified__psf__requests-1921",
+      "swebench_verified__psf__requests-2931",
+      "swebench_verified__psf__requests-5414",
+      "swebench_verified__pydata__xarray-3677",
+      "swebench_verified__pydata__xarray-4966",
+      "swebench_verified__pylint-dev__pylint-4551",
+      "swebench_verified__pylint-dev__pylint-4604",
+      "swebench_verified__pytest-dev__pytest-10051",
+      "swebench_verified__pytest-dev__pytest-5809",
+      "swebench_verified__pytest-dev__pytest-7571"
+    ],
+    "data/helpers": [
+      "swebench_verified__pallets__flask-5014",
+      "swebench_verified__psf__requests-1142",
+      "swebench_verified__psf__requests-1724",
+      "swebench_verified__psf__requests-1766",
+      "swebench_verified__psf__requests-2931",
+      "swebench_verified__pydata__xarray-3677",
+      "swebench_verified__pydata__xarray-4966",
+      "swebench_verified__pylint-dev__pylint-4551",
+      "swebench_verified__pylint-dev__pylint-4604",
+      "swebench_verified__pytest-dev__pytest-10051",
+      "swebench_verified__pytest-dev__pytest-5809",
+      "swebench_verified__pytest-dev__pytest-7571"
+    ],
+    "results": [
+      "swebench_verified__pallets__flask-5014",
+      "swebench_verified__psf__requests-1142",
+      "swebench_verified__psf__requests-1724",
+      "swebench_verified__psf__requests-1766",
+      "swebench_verified__psf__requests-1921",
+      "swebench_verified__psf__requests-2931",
+      "swebench_verified__psf__requests-5414",
+      "swebench_verified__pydata__xarray-3677",
+      "swebench_verified__pydata__xarray-4966",
+      "swebench_verified__pylint-dev__pylint-4551",
+      "swebench_verified__pylint-dev__pylint-4604",
+      "swebench_verified__pytest-dev__pytest-10051",
+      "swebench_verified__pytest-dev__pytest-5809",
+      "swebench_verified__pytest-dev__pytest-7571"
+    ],
+    "docs": []
+  },
+  "all": [
+    "swebench_verified__astropy__astropy-12907",
+    "swebench_verified__astropy__astropy-13033",
+    "swebench_verified__astropy__astropy-13236",
+    "swebench_verified__pallets__flask-5014",
+    "swebench_verified__psf__requests-1142",
+    "swebench_verified__psf__requests-1724",
+    "swebench_verified__psf__requests-1766",
+    "swebench_verified__psf__requests-1921",
+    "swebench_verified__psf__requests-2931",
+    "swebench_verified__psf__requests-5414",
+    "swebench_verified__pydata__xarray-3677",
+    "swebench_verified__pydata__xarray-4966",
+    "swebench_verified__pylint-dev__pylint-4551",
+    "swebench_verified__pylint-dev__pylint-4604",
+    "swebench_verified__pytest-dev__pytest-10051",
+    "swebench_verified__pytest-dev__pytest-5809",
+    "swebench_verified__pytest-dev__pytest-7571"
+  ],
+  "count": 17
+}

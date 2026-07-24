@@ -1,0 +1,17 @@
+{
+  "task_id": "swebench_verified__sympy__sympy-12481",
+  "test_source": "import pytest\nfrom sympy.combinatorics import Permutation\n\ndef test_permutation_non_disjoint_cycles():\n    \"\"\"Test that Permutation constructor handles non-disjoint cycles correctly.\"\"\"\n    # This should not raise ValueError but should return the identity permutation\n    # since applying cycles [0,1] then [0,1] results in identity\n    perm = Permutation([[0,1],[0,1]])\n    assert perm.is_identity",
+  "run_command": "python -m pytest helper_test.py",
+  "generator_model": "qwen3-coder-30b-a3b-instruct",
+  "prompt_hash": "sha256:cbb11a800471ca91a305a31572a9dfd4892b86a5211fb7d3cba7e31fc02612f1",
+  "candidate_index": 0,
+  "frozen_hash": "sha256:c428c946657217ef59d04e61d437f9c4463f06e7b4c680922e961b3d3e514c10",
+  "collected": true,
+  "fail_before": true,
+  "pass_after_gold": false,
+  "classification": "T2_incompatible_oracle",
+  "issue_provenance_ok": true,
+  "suspicious_literals": [],
+  "audit_passed": null,
+  "notes": ""
+}

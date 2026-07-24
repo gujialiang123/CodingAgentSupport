@@ -1,0 +1,284 @@
+{
+  "classes": {
+    "T2_incompatible_oracle": 18,
+    "T1_non_reproducing": 5,
+    "T0_invalid": 5,
+    "ERROR": 4,
+    "T4_decoupled_valid": 7,
+    "T3_valid_reproduction": 1
+  },
+  "tasks": [
+    {
+      "task_id": "swebench_verified__django__django-11179",
+      "classification": "T2_incompatible_oracle",
+      "fail_before": true,
+      "pass_after_gold": false,
+      "issue_provenance_ok": true
+    },
+    {
+      "task_id": "swebench_verified__pytest-dev__pytest-10081",
+      "classification": "T1_non_reproducing",
+      "fail_before": false,
+      "pass_after_gold": true,
+      "issue_provenance_ok": true
+    },
+    {
+      "task_id": "swebench_verified__django__django-13568",
+      "classification": "T2_incompatible_oracle",
+      "fail_before": true,
+      "pass_after_gold": false,
+      "issue_provenance_ok": true
+    },
+    {
+      "task_id": "swebench_verified__sphinx-doc__sphinx-8475",
+      "classification": "T0_invalid",
+      "fail_before": null,
+      "pass_after_gold": null,
+      "issue_provenance_ok": null
+    },
+    {
+      "task_id": "swebench_verified__django__django-14534",
+      "classification": "T2_incompatible_oracle",
+      "fail_before": true,
+      "pass_after_gold": false,
+      "issue_provenance_ok": true
+    },
+    {
+      "task_id": "swebench_verified__django__django-14404",
+      "classification": "T2_incompatible_oracle",
+      "fail_before": true,
+      "pass_after_gold": false,
+      "issue_provenance_ok": true
+    },
+    {
+      "task_id": "swebench_verified__matplotlib__matplotlib-20488",
+      "classification": "ERROR",
+      "error": "RuntimeError('failed to start container for matplotlib__matplotlib-20488: Unable to find image \\'swebench/sweb.eval.x86_64.matplotlib_1776_matplotlib-20488:latest\\' locally\\nlatest: Pulling from swebench/sweb.eval.x86_64.matplotlib_1776_matplotlib-20488\\n857cc8cb19c0: Already exists\\n3f7fc75e0986: Already exists\\nf8d2d48431b1: Already exists\\n72a765079ad3: Already exists\\n3ab6df53b88e: Already exists\\n7cd589973a38: Already exists\\ncf04fce3ad6b: Pulling fs layer\\n386c12ea8c40: Pulling fs layer\\n1a2836e33c51: Pulling fs layer\\na08d71a7ba0d: Pulling fs layer\\n1d9051c9a63c: Pulling fs layer\\n447c2becbfd5: Pulling fs layer\\n44f0b24d83be: Pulling fs layer\\n41480fa1a62a: Pulling fs layer\\n447c2becbfd5: Waiting\\n41480fa1a62a: Waiting\\na08d71a7ba0d: Waiting\\n44f0b24d83be: Waiting\\n1d9051c9a63c: Waiting\\n1a2836e33c51: Verifying Checksum\\n1a2836e33c51: Download complete\\n386c12ea8c40: Verifying Checksum\\n386c12ea8c40: Download complete\\ncf04fce3ad6b: Verifying Checksum\\ncf04fce3ad6b: Download complete\\ncf04fce3ad6b: Pull complete\\n386c12ea8c40: Pull complete\\n1a2836e33c51: Pull complete\\n1d9051c9a63c: Verifying Checksum\\n1d9051c9a63c: Download complete\\n447c2becbfd5: Verifying Checksum\\n447c2becbfd5: Download complete\\n44f0b24d83be: Download complete\\n41480fa1a62a: Verifying Checksum\\n41480fa1a62a: Download complete\\na08d71a7ba0d: Verifying Checksum\\na08d71a7ba0d: Download complete\\na08d71a7ba0d: Pull complete\\n1d9051c9a63c: Pull complete\\n447c2becbfd5: Pull complete\\n44f0b24d83be: Pull complete\\ndocker: failed to register layer: failed to Lchown \"/testbed/build/qhull-2020.2\" for UID 197609, GID 197121 (try increasing the number of subordinate IDs in /etc/subuid and /etc/subgid): lchown /testbed/build/qhull-2020.2: invalid argument\\n\\nRun \\'docker run --help\\' for more information\\n')"
+    },
+    {
+      "task_id": "swebench_verified__matplotlib__matplotlib-25287",
+      "classification": "ERROR",
+      "error": "RuntimeError('failed to start container for matplotlib__matplotlib-25287: Unable to find image \\'swebench/sweb.eval.x86_64.matplotlib_1776_matplotlib-25287:latest\\' locally\\nlatest: Pulling from swebench/sweb.eval.x86_64.matplotlib_1776_matplotlib-25287\\n857cc8cb19c0: Already exists\\n3f7fc75e0986: Already exists\\nf8d2d48431b1: Already exists\\n72a765079ad3: Already exists\\n3ab6df53b88e: Already exists\\n7cd589973a38: Already exists\\ne31ea8338932: Pulling fs layer\\n6a93090fd468: Pulling fs layer\\n734f0b619a33: Pulling fs layer\\nebc46abf34d2: Pulling fs layer\\nf9142b7f73fd: Pulling fs layer\\n3ec316c55f69: Pulling fs layer\\n93e2dafc68b5: Pulling fs layer\\n3bbebb1386dd: Pulling fs layer\\n28a2492f44de: Pulling fs layer\\nebc46abf34d2: Waiting\\n93e2dafc68b5: Waiting\\nf9142b7f73fd: Waiting\\n3bbebb1386dd: Waiting\\n3ec316c55f69: Waiting\\n28a2492f44de: Waiting\\n6a93090fd468: Download complete\\ne31ea8338932: Verifying Checksum\\ne31ea8338932: Download complete\\ne31ea8338932: Pull complete\\n734f0b619a33: Download complete\\n6a93090fd468: Pull complete\\n734f0b619a33: Pull complete\\nf9142b7f73fd: Verifying Checksum\\nf9142b7f73fd: Download complete\\n3ec316c55f69: Verifying Checksum\\n3ec316c55f69: Download complete\\n93e2dafc68b5: Download complete\\n3bbebb1386dd: Verifying Checksum\\n3bbebb1386dd: Download complete\\n28a2492f44de: Verifying Checksum\\n28a2492f44de: Download complete\\nebc46abf34d2: Verifying Checksum\\nebc46abf34d2: Download complete\\nebc46abf34d2: Pull complete\\nf9142b7f73fd: Pull complete\\n3ec316c55f69: Pull complete\\n93e2dafc68b5: Pull complete\\n3bbebb1386dd: Pull complete\\ndocker: failed to register layer: failed to Lchown \"/testbed/build/qhull-2020.2\" for UID 197609, GID 197121 (try increasing the number of subordinate IDs in /etc/subuid and /etc/subgid): lchown /testbed/build/qhull-2020.2: invalid argument\\n\\nRun \\'docker run --help\\' for more information\\n')"
+    },
+    {
+      "task_id": "swebench_verified__sympy__sympy-13091",
+      "classification": "T2_incompatible_oracle",
+      "fail_before": true,
+      "pass_after_gold": false,
+      "issue_provenance_ok": true
+    },
+    {
+      "task_id": "swebench_verified__pydata__xarray-4356",
+      "classification": "T4_decoupled_valid",
+      "fail_before": true,
+      "pass_after_gold": true,
+      "issue_provenance_ok": true
+    },
+    {
+      "task_id": "swebench_verified__sympy__sympy-12481",
+      "classification": "T2_incompatible_oracle",
+      "fail_before": true,
+      "pass_after_gold": false,
+      "issue_provenance_ok": true
+    },
+    {
+      "task_id": "swebench_verified__scikit-learn__scikit-learn-13439",
+      "classification": "T4_decoupled_valid",
+      "fail_before": true,
+      "pass_after_gold": true,
+      "issue_provenance_ok": true
+    },
+    {
+      "task_id": "swebench_verified__sphinx-doc__sphinx-9698",
+      "classification": "T2_incompatible_oracle",
+      "fail_before": true,
+      "pass_after_gold": false,
+      "issue_provenance_ok": true
+    },
+    {
+      "task_id": "swebench_verified__astropy__astropy-14598",
+      "classification": "T3_valid_reproduction",
+      "fail_before": true,
+      "pass_after_gold": true,
+      "issue_provenance_ok": false
+    },
+    {
+      "task_id": "swebench_verified__astropy__astropy-7336",
+      "classification": "T0_invalid",
+      "fail_before": null,
+      "pass_after_gold": null,
+      "issue_provenance_ok": null
+    },
+    {
+      "task_id": "swebench_verified__sympy__sympy-24213",
+      "classification": "T2_incompatible_oracle",
+      "fail_before": true,
+      "pass_after_gold": false,
+      "issue_provenance_ok": true
+    },
+    {
+      "task_id": "swebench_verified__pydata__xarray-6992",
+      "classification": "T2_incompatible_oracle",
+      "fail_before": true,
+      "pass_after_gold": false,
+      "issue_provenance_ok": true
+    },
+    {
+      "task_id": "swebench_verified__sympy__sympy-24066",
+      "classification": "T2_incompatible_oracle",
+      "fail_before": true,
+      "pass_after_gold": false,
+      "issue_provenance_ok": true
+    },
+    {
+      "task_id": "swebench_verified__scikit-learn__scikit-learn-9288",
+      "classification": "T4_decoupled_valid",
+      "fail_before": true,
+      "pass_after_gold": true,
+      "issue_provenance_ok": true
+    },
+    {
+      "task_id": "swebench_verified__sphinx-doc__sphinx-7454",
+      "classification": "T1_non_reproducing",
+      "fail_before": false,
+      "pass_after_gold": true,
+      "issue_provenance_ok": false
+    },
+    {
+      "task_id": "swebench_verified__sphinx-doc__sphinx-10449",
+      "classification": "T2_incompatible_oracle",
+      "fail_before": true,
+      "pass_after_gold": false,
+      "issue_provenance_ok": true
+    },
+    {
+      "task_id": "swebench_verified__matplotlib__matplotlib-24637",
+      "classification": "ERROR",
+      "error": "RuntimeError('failed to start container for matplotlib__matplotlib-24637: Unable to find image \\'swebench/sweb.eval.x86_64.matplotlib_1776_matplotlib-24637:latest\\' locally\\nlatest: Pulling from swebench/sweb.eval.x86_64.matplotlib_1776_matplotlib-24637\\n857cc8cb19c0: Already exists\\n3f7fc75e0986: Already exists\\nf8d2d48431b1: Already exists\\n72a765079ad3: Already exists\\n3ab6df53b88e: Already exists\\n7cd589973a38: Already exists\\n780b3b9d57d9: Pulling fs layer\\ne1a2655e4da4: Pulling fs layer\\nbc605967bd6d: Pulling fs layer\\n5ec8564bcbe6: Pulling fs layer\\n8b6b0d41043f: Pulling fs layer\\n1e03574e0358: Pulling fs layer\\n792a033eec99: Pulling fs layer\\n9ca1ab7ea6b4: Pulling fs layer\\n6df786cf4911: Pulling fs layer\\n792a033eec99: Waiting\\n9ca1ab7ea6b4: Waiting\\n6df786cf4911: Waiting\\n1e03574e0358: Waiting\\n5ec8564bcbe6: Waiting\\n8b6b0d41043f: Waiting\\n780b3b9d57d9: Verifying Checksum\\n780b3b9d57d9: Download complete\\nbc605967bd6d: Verifying Checksum\\nbc605967bd6d: Download complete\\n780b3b9d57d9: Pull complete\\ne1a2655e4da4: Pull complete\\nbc605967bd6d: Pull complete\\n8b6b0d41043f: Verifying Checksum\\n8b6b0d41043f: Download complete\\n1e03574e0358: Verifying Checksum\\n1e03574e0358: Download complete\\n9ca1ab7ea6b4: Verifying Checksum\\n9ca1ab7ea6b4: Download complete\\n792a033eec99: Verifying Checksum\\n792a033eec99: Download complete\\n6df786cf4911: Verifying Checksum\\n6df786cf4911: Download complete\\n5ec8564bcbe6: Verifying Checksum\\n5ec8564bcbe6: Download complete\\n5ec8564bcbe6: Pull complete\\n8b6b0d41043f: Pull complete\\n1e03574e0358: Pull complete\\n792a033eec99: Pull complete\\n9ca1ab7ea6b4: Pull complete\\ndocker: failed to register layer: failed to Lchown \"/testbed/build/qhull-2020.2\" for UID 197609, GID 197121 (try increasing the number of subordinate IDs in /etc/subuid and /etc/subgid): lchown /testbed/build/qhull-2020.2: invalid argument\\n\\nRun \\'docker run --help\\' for more information\\n')"
+    },
+    {
+      "task_id": "swebench_verified__scikit-learn__scikit-learn-13142",
+      "classification": "T1_non_reproducing",
+      "fail_before": false,
+      "pass_after_gold": true,
+      "issue_provenance_ok": true
+    },
+    {
+      "task_id": "swebench_verified__scikit-learn__scikit-learn-11310",
+      "classification": "T4_decoupled_valid",
+      "fail_before": true,
+      "pass_after_gold": true,
+      "issue_provenance_ok": true
+    },
+    {
+      "task_id": "swebench_verified__astropy__astropy-8872",
+      "classification": "T4_decoupled_valid",
+      "fail_before": true,
+      "pass_after_gold": true,
+      "issue_provenance_ok": true
+    },
+    {
+      "task_id": "swebench_verified__pydata__xarray-6721",
+      "classification": "T2_incompatible_oracle",
+      "fail_before": true,
+      "pass_after_gold": false,
+      "issue_provenance_ok": true
+    },
+    {
+      "task_id": "swebench_verified__pydata__xarray-4629",
+      "classification": "T4_decoupled_valid",
+      "fail_before": true,
+      "pass_after_gold": true,
+      "issue_provenance_ok": true
+    },
+    {
+      "task_id": "swebench_verified__matplotlib__matplotlib-25311",
+      "classification": "ERROR",
+      "error": "RuntimeError('failed to start container for matplotlib__matplotlib-25311: Unable to find image \\'swebench/sweb.eval.x86_64.matplotlib_1776_matplotlib-25311:latest\\' locally\\nlatest: Pulling from swebench/sweb.eval.x86_64.matplotlib_1776_matplotlib-25311\\n857cc8cb19c0: Already exists\\n3f7fc75e0986: Already exists\\nf8d2d48431b1: Already exists\\n72a765079ad3: Already exists\\n3ab6df53b88e: Already exists\\n7cd589973a38: Already exists\\ne31ea8338932: Pulling fs layer\\n6a93090fd468: Pulling fs layer\\n734f0b619a33: Pulling fs layer\\nebc46abf34d2: Pulling fs layer\\nf9142b7f73fd: Pulling fs layer\\n3ec316c55f69: Pulling fs layer\\n00fd188ef78e: Pulling fs layer\\n71aa660e13d0: Pulling fs layer\\n31edc245bec2: Pulling fs layer\\n00fd188ef78e: Waiting\\nebc46abf34d2: Waiting\\n71aa660e13d0: Waiting\\n31edc245bec2: Waiting\\nf9142b7f73fd: Waiting\\n3ec316c55f69: Waiting\\ne31ea8338932: Verifying Checksum\\n6a93090fd468: Verifying Checksum\\n6a93090fd468: Download complete\\n734f0b619a33: Verifying Checksum\\n734f0b619a33: Download complete\\ne31ea8338932: Pull complete\\n6a93090fd468: Pull complete\\n734f0b619a33: Pull complete\\nf9142b7f73fd: Verifying Checksum\\n3ec316c55f69: Verifying Checksum\\n3ec316c55f69: Download complete\\n00fd188ef78e: Verifying Checksum\\n00fd188ef78e: Download complete\\n71aa660e13d0: Download complete\\n31edc245bec2: Verifying Checksum\\n31edc245bec2: Download complete\\nebc46abf34d2: Download complete\\nebc46abf34d2: Pull complete\\nf9142b7f73fd: Pull complete\\n3ec316c55f69: Pull complete\\n00fd188ef78e: Pull complete\\n71aa660e13d0: Pull complete\\ndocker: failed to register layer: failed to Lchown \"/testbed/build/qhull-2020.2\" for UID 197609, GID 197121 (try increasing the number of subordinate IDs in /etc/subuid and /etc/subgid): lchown /testbed/build/qhull-2020.2: invalid argument\\n\\nRun \\'docker run --help\\' for more information\\n')"
+    },
+    {
+      "task_id": "swebench_verified__pytest-dev__pytest-8399",
+      "classification": "T1_non_reproducing",
+      "fail_before": false,
+      "pass_after_gold": true,
+      "issue_provenance_ok": true
+    },
+    {
+      "task_id": "swebench_verified__pytest-dev__pytest-5262",
+      "classification": "T0_invalid",
+      "fail_before": null,
+      "pass_after_gold": null,
+      "issue_provenance_ok": null
+    },
+    {
+      "task_id": "swebench_verified__pytest-dev__pytest-7324",
+      "classification": "T0_invalid",
+      "fail_before": null,
+      "pass_after_gold": null,
+      "issue_provenance_ok": null
+    },
+    {
+      "task_id": "swebench_verified__astropy__astropy-13453",
+      "classification": "T4_decoupled_valid",
+      "fail_before": true,
+      "pass_after_gold": true,
+      "issue_provenance_ok": true
+    },
+    {
+      "task_id": "swebench_verified__pylint-dev__pylint-6903",
+      "classification": "T2_incompatible_oracle",
+      "fail_before": true,
+      "pass_after_gold": false,
+      "issue_provenance_ok": false
+    },
+    {
+      "task_id": "swebench_verified__mwaskom__seaborn-3069",
+      "classification": "T2_incompatible_oracle",
+      "fail_before": true,
+      "pass_after_gold": false,
+      "issue_provenance_ok": true
+    },
+    {
+      "task_id": "swebench_verified__mwaskom__seaborn-3187",
+      "classification": "T2_incompatible_oracle",
+      "fail_before": true,
+      "pass_after_gold": false,
+      "issue_provenance_ok": true
+    },
+    {
+      "task_id": "swebench_verified__psf__requests-2317",
+      "classification": "T2_incompatible_oracle",
+      "fail_before": true,
+      "pass_after_gold": false,
+      "issue_provenance_ok": true
+    },
+    {
+      "task_id": "swebench_verified__pylint-dev__pylint-8898",
+      "classification": "T1_non_reproducing",
+      "fail_before": false,
+      "pass_after_gold": true,
+      "issue_provenance_ok": true
+    },
+    {
+      "task_id": "swebench_verified__pylint-dev__pylint-7277",
+      "classification": "T2_incompatible_oracle",
+      "fail_before": true,
+      "pass_after_gold": false,
+      "issue_provenance_ok": false
+    },
+    {
+      "task_id": "swebench_verified__pylint-dev__pylint-7080",
+      "classification": "T0_invalid",
+      "fail_before": null,
+      "pass_after_gold": null,
+      "issue_provenance_ok": null
+    },
+    {
+      "task_id": "swebench_verified__psf__requests-6028",
+      "classification": "T2_incompatible_oracle",
+      "fail_before": true,
+      "pass_after_gold": false,
+      "issue_provenance_ok": true
+    }
+  ]
+}

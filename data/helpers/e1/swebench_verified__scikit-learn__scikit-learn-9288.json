@@ -1,0 +1,17 @@
+{
+  "task_id": "swebench_verified__scikit-learn__scikit-learn-9288",
+  "test_source": "import numpy as np\nfrom sklearn.cluster import KMeans\nfrom sklearn.datasets import make_blobs\n\ndef test_kmeans_n_jobs_consistency():\n    \"\"\"Test that KMeans gives consistent results regardless of n_jobs value.\"\"\"\n    # Generate some data\n    X, y = make_blobs(n_samples=10000, centers=10, n_features=2, random_state=2)\n    \n    # Run KMeans with various n_jobs values\n    inertias = []\n    for n_jobs in [1, 2, 3, 4]:\n        kmeans = KMeans(n_clusters=10, random_state=2, n_jobs=n_jobs)\n        kmeans.fit(X)\n        inertias.append(kmeans.inertia_)\n    \n    # All inertias should be equal (within floating point precision)\n    # The bug causes n_jobs=1 to give slightly different result\n    assert np.allclose(inertias, inertias[0], rtol=1e-10)",
+  "run_command": "python -m pytest helper_test.py",
+  "generator_model": "qwen3-coder-30b-a3b-instruct",
+  "prompt_hash": "sha256:cd8c06516bfe6d34be39c547b6684e4eceb7c50b74941907fac3ce125521759a",
+  "candidate_index": 0,
+  "frozen_hash": "sha256:71cad8281367d95eb4149a15e6436404b4d8be98ccb57e30bae0f802a72e6a7b",
+  "collected": true,
+  "fail_before": true,
+  "pass_after_gold": true,
+  "classification": "T4_decoupled_valid",
+  "issue_provenance_ok": true,
+  "suspicious_literals": [],
+  "audit_passed": null,
+  "notes": ""
+}

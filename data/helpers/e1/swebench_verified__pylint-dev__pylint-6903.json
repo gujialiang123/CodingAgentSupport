@@ -1,0 +1,19 @@
+{
+  "task_id": "swebench_verified__pylint-dev__pylint-6903",
+  "test_source": "import pytest\nfrom unittest.mock import patch\nfrom pylint.lint.run import _query_cpu\n\n\ndef test_query_cpu_zero_jobs_handling():\n    \"\"\"Test that _query_cpu returns at least 1 even when calculation results in 0\"\"\"\n    # Mock the file reads to reproduce the specific scenario from the bug report\n    with patch('builtins.open', side_effect=[\n        # First read: cpu.cfs_quota_us = -1\n        pytest.mock_open(read_data=\"-1\")(),\n        # Second read: cpu.cfs_period_us = 100000  \n        pytest.mock_open(read_data=\"100000\")(),\n        # Third read: cpu.shares = 2\n        pytest.mock_open(read_data=\"2\")(),\n    ]):\n        # This should not return 0, but rather at least 1\n        result = _query_cpu()\n        assert result >= 1, f\"Expected at least 1 CPU, but got {result}\"",
+  "run_command": "python -m pytest helper_test.py",
+  "generator_model": "qwen3-coder-30b-a3b-instruct",
+  "prompt_hash": "sha256:971a016a173e9f99c35535d2e659c6bf7c63c224fcd8ef5913c84f283a766e31",
+  "candidate_index": 0,
+  "frozen_hash": "sha256:4bbc8b32668d42b383ef925c70163e81d5ade244fb81a14007bfbd051d4aa43b",
+  "collected": true,
+  "fail_before": true,
+  "pass_after_gold": false,
+  "classification": "T2_incompatible_oracle",
+  "issue_provenance_ok": false,
+  "suspicious_literals": [
+    "Expected at least 1 CPU, but got "
+  ],
+  "audit_passed": null,
+  "notes": ""
+}

@@ -1,0 +1,17 @@
+{
+  "task_id": "swebench_verified__pytest-dev__pytest-7324",
+  "test_source": "",
+  "run_command": "python -m pytest helper_test.py",
+  "generator_model": "qwen3-coder-30b-a3b-instruct",
+  "prompt_hash": "sha256:cea83bba5350a949e834ce3fc6036afcc23e06804ec8c7a3ab181b8ea13e5779",
+  "candidate_index": 0,
+  "frozen_hash": null,
+  "collected": null,
+  "fail_before": null,
+  "pass_after_gold": null,
+  "classification": "T0_invalid",
+  "issue_provenance_ok": null,
+  "suspicious_literals": [],
+  "audit_passed": null,
+  "notes": "no runnable candidate"
+}

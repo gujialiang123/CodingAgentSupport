@@ -1,0 +1,19 @@
+{
+  "task_id": "swebench_verified__pylint-dev__pylint-7277",
+  "test_source": "import sys\nimport os\nfrom unittest.mock import patch\n\ndef test_pylint_removes_first_sys_path_item():\n    \"\"\"Test that pylint doesn't remove first item from sys.path when it's not empty or current directory.\"\"\"\n    \n    # Save original sys.path\n    original_path = sys.path.copy()\n    \n    try:\n        # Add a custom path at the beginning\n        custom_path = \"/custom/path\"\n        sys.path.insert(0, custom_path)\n        \n        # Mock the pylint main function to avoid actual linting\n        with patch('pylint.__main__.main') as mock_main:\n            mock_main.return_value = 0\n            \n            # Import and run pylint through runpy\n            import runpy\n            runpy.run_module('pylint', run_name=\"__main__\", alter_sys=True)\n            \n            # Check that our custom path is still in sys.path\n            assert custom_path in sys.path, \"Custom path was incorrectly removed from sys.path\"\n            \n    finally:\n        # Restore original sys.path\n        sys.path[:] = original_path",
+  "run_command": "python -m pytest helper_test.py",
+  "generator_model": "qwen3-coder-30b-a3b-instruct",
+  "prompt_hash": "sha256:c414cd04863b8c2c0f2adb9219fa4e723859a3e5ab987bb5690ae0b3a3c7c755",
+  "candidate_index": 0,
+  "frozen_hash": "sha256:008b30e4ca34c22bc9bf7be7663594fed42655e1341dcf8f0c9121dc37f9d2ff",
+  "collected": true,
+  "fail_before": true,
+  "pass_after_gold": false,
+  "classification": "T2_incompatible_oracle",
+  "issue_provenance_ok": false,
+  "suspicious_literals": [
+    "Custom path was incorrectly removed from sys.path"
+  ],
+  "audit_passed": null,
+  "notes": ""
+}

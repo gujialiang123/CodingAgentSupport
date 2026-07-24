@@ -1,0 +1,17 @@
+{
+  "task_id": "swebench_verified__pydata__xarray-4356",
+  "test_source": "import pytest\nimport xarray as xr\nimport numpy as np\n\ndef test_sum_min_count_multi_dimension():\n    \"\"\"Test that sum with min_count works with multiple dimensions.\"\"\"\n    da = xr.DataArray([[1., 2, 3], [4, 5, 6]])\n    \n    # This should not raise an error - the bug occurs when passing\n    # multiple dimensions to sum with min_count\n    result = da.sum([\"dim_0\", \"dim_1\"], min_count=1)\n    \n    # Verify the result is correct\n    expected = da.sum([\"dim_0\", \"dim_1\"])\n    assert result == expected",
+  "run_command": "python -m pytest helper_test.py",
+  "generator_model": "qwen3-coder-30b-a3b-instruct",
+  "prompt_hash": "sha256:441257a8e8e7eeb5bfdeb31132004a6c7b1331e52dfb3237f5bb914e28fd5b74",
+  "candidate_index": 0,
+  "frozen_hash": "sha256:9c51377c54d4518bb66d47f3616cc93d02520d821eb78d1c03357312c135aee6",
+  "collected": true,
+  "fail_before": true,
+  "pass_after_gold": true,
+  "classification": "T4_decoupled_valid",
+  "issue_provenance_ok": true,
+  "suspicious_literals": [],
+  "audit_passed": null,
+  "notes": ""
+}

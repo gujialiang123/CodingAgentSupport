@@ -1,0 +1,17 @@
+{
+  "task_id": "swebench_verified__django__django-11179",
+  "test_source": "import pytest\nfrom django.db import models\n\n\nclass SimpleModel(models.Model):\n    name = models.CharField(max_length=100)\n\n    class Meta:\n        app_label = 'test'\n\n\ndef test_delete_clears_primary_key():\n    \"\"\"Test that delete() sets the PK to None on models without dependencies.\"\"\"\n    instance = SimpleModel.objects.create(name=\"test\")\n    pk = instance.pk\n    \n    # Verify the instance exists and has a PK\n    assert pk is not None\n    \n    # Delete the instance\n    instance.delete()\n    \n    # After deletion, the PK should be None\n    assert instance.pk is None",
+  "run_command": "python -m pytest helper_test.py",
+  "generator_model": "qwen3-coder-30b-a3b-instruct",
+  "prompt_hash": "sha256:6285557215a34ec01da48ea95f6b6a8df1ae8fe4e98e543a0150c0e856637be1",
+  "candidate_index": 0,
+  "frozen_hash": "sha256:cf6520d7d52c04786195c089fd4b87c155fe3bf589974e6954eb85f2d40bc151",
+  "collected": true,
+  "fail_before": true,
+  "pass_after_gold": false,
+  "classification": "T2_incompatible_oracle",
+  "issue_provenance_ok": true,
+  "suspicious_literals": [],
+  "audit_passed": null,
+  "notes": ""
+}

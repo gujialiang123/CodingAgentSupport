@@ -1,5 +1,25 @@
 # Handoff: running large-model experiments
 
+> **Protocol 0.3.1 (current).** Integrity repaired (read-only helper mount,
+> clean-tree S0/S1/S2, safe patch extraction, helper-hash HARD invariant). The
+> old 12 tasks are the **D0** development set and are excluded from confirmatory
+> estimates. The next formal study (E1) is a new-task C2×C3 experiment on the
+> pinned Qwen model `qwen3-coder-30b-a3b-instruct` (302.ai). No pre-0.3 run may be
+> pooled with 0.3.x. See `PROTOCOL_0.3.1_FREEZE.md`.
+>
+> **E1 outcome (Exp 015) — NO-GO for the 50-task pilot as configured.** On 8 new
+> T3/T4 tasks (all that reached T3/T4 out of 40 candidates — helper coverage is
+> only ~20% and concentrated in xarray/sklearn/astropy), `qwen3-coder-30b` resolves
+> **1/8 under every condition** (floor effect). Integrity is perfect (0 infra
+> failures) and manipulation succeeded (helper executed 16/16, gates fired 28
+> revisions), but the contrast is unpowered. **Before a powered study:** (1) use a
+> stronger model / higher budget to lift the floor, and (2) broaden the
+> valid-helper frame (framework-repo helper tooling or an easier difficulty
+> stratum) so a ≥20-task multi-repo T3/T4 cohort exists. Note: **matplotlib images
+> fail under this host's rootless Docker** (`Lchown` subuid limit) and are
+> unusable here. See `docs/experiments/014_e1_helper_feasibility.md`,
+> `015_e1_c2xc3_qwen_openweight.md`.
+
 This document is the context needed to resume the SE-Support Study on a
 bigger-GPU machine and run the real confirmatory experiments. It complements
 `EXPERIMENT_PLAN_2026-07-21.md` (the protocol) and

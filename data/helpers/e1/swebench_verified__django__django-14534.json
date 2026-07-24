@@ -1,0 +1,17 @@
+{
+  "task_id": "swebench_verified__django__django-14534",
+  "test_source": "import pytest\nfrom django import forms\nfrom django.forms.widgets import CheckboxSelectMultiple\n\n\ndef test_bound_widget_id_for_label_uses_widget_attrs_id():\n    \"\"\"Test that BoundWidget.id_for_label uses the id from widget attributes instead of generating its own.\"\"\"\n    \n    # Create a form with CheckboxSelectMultiple widget\n    class TestForm(forms.Form):\n        choices = forms.MultipleChoiceField(\n            choices=[('1', 'Option 1'), ('2', 'Option 2')],\n            widget=CheckboxSelectMultiple,\n            required=False\n        )\n    \n    # Create form instance with custom auto_id\n    form = TestForm(auto_id='custom_id_%s')\n    \n    # Get the bound field\n    bound_field = form['choices']\n    \n    # Get subwidgets - this should respect the custom auto_id in widget attrs\n    subwidgets = list(bound_field.subwidgets)\n    \n    # Check that each subwidget has the correct id in its attrs\n    assert len(subwidgets) == 2\n    for i, widget in enumerate(subwidgets):\n        # The widget's attrs should contain the id that was set by the form's auto_id\n        expected_id = f'custom_id_{bound_field.html_name}_{i}'\n        assert widget.data['attrs']['id'] == expected_id\n        \n        # The id_for_label should return the same id from widget attrs\n        assert widget.id_for_label() == expected_id",
+  "run_command": "python -m pytest helper_test.py",
+  "generator_model": "qwen3-coder-30b-a3b-instruct",
+  "prompt_hash": "sha256:36b257ee97a49adc1414b4a23f4b2dba34562b270f1081ee8ed215e0df0e6445",
+  "candidate_index": 0,
+  "frozen_hash": "sha256:18129248619329ffacb026a3feb745999ec9a30e03bf6048537db1b080550012",
+  "collected": true,
+  "fail_before": true,
+  "pass_after_gold": false,
+  "classification": "T2_incompatible_oracle",
+  "issue_provenance_ok": true,
+  "suspicious_literals": [],
+  "audit_passed": null,
+  "notes": ""
+}

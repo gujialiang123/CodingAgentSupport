@@ -1,0 +1,42 @@
+{
+  "C0_minimal": {
+    "applying": 20,
+    "n": 21,
+    "p2p_missing": 3,
+    "p2p_regressing": 4,
+    "p2p_regression_rate": 0.235,
+    "p2p_usable": 17,
+    "resolution_rate": 0.524,
+    "resolved": 11
+  },
+  "C2_C3": {
+    "applying": 21,
+    "n": 21,
+    "p2p_missing": 3,
+    "p2p_regressing": 2,
+    "p2p_regression_rate": 0.111,
+    "p2p_usable": 18,
+    "resolution_rate": 0.667,
+    "resolved": 14
+  },
+  "C2_tests": {
+    "applying": 21,
+    "n": 21,
+    "p2p_missing": 3,
+    "p2p_regressing": 3,
+    "p2p_regression_rate": 0.167,
+    "p2p_usable": 18,
+    "resolution_rate": 0.667,
+    "resolved": 14
+  },
+  "C3_gates": {
+    "applying": 21,
+    "n": 21,
+    "p2p_missing": 3,
+    "p2p_regressing": 4,
+    "p2p_regression_rate": 0.222,
+    "p2p_usable": 18,
+    "resolution_rate": 0.667,
+    "resolved": 14
+  }
+}

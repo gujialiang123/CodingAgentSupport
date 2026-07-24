@@ -83,6 +83,23 @@ class InfrastructureFailure(RuntimeError):
         self.state = state
 
 
+def _helper_integrity_violation(host: str | None, before: str | None,
+                                after: str | None) -> str | None:
+    """Return a reason string if the helper-hash invariant is violated, else None.
+
+    Phase 1A hard invariant (checked only when a helper is expected): the host
+    artifact SHA must be present and equal to what the container saw before the
+    agent ran, and the container hash must be unchanged after the run.
+    """
+    if not host:
+        return "helper_host_sha_missing"
+    if before != host:
+        return f"helper_before_mismatch(host={host[:12]},before={str(before)[:12]})"
+    if after != before:
+        return f"helper_after_mismatch(before={str(before)[:12]},after={str(after)[:12]})"
+    return None
+
+
 def _resolve_helper_artifact(
     task, cond, use_container, helper_cache_dir, generator_client, model,
     docker_env, rd,
@@ -312,12 +329,23 @@ def _run_body(
         rd.write_json("integrity/patch_manifest.json", patch_manifest)
         if helper_host_sha is not None:
             after = container.helper_sha256()
-            rd.write_json("integrity/helper_hash.json", {
+            helper_hash = {
                 "host_sha256": helper_host_sha,
                 "container_sha256_before": helper_sha_before,
                 "container_sha256_after": after,
                 "helper_unchanged": (helper_sha_before == after and after is not None),
-            })
+            }
+            rd.write_json("integrity/helper_hash.json", helper_hash)
+            # Phase 1A: helper-hash integrity is a HARD invariant. A mismatch means
+            # the read-only guarantee was violated (tampered/missing helper); the
+            # run is invalid infrastructure, not an agent outcome. Artifacts (hashes,
+            # manifest, S0/S1/S2, transcript) are preserved by _infrastructure_failure.
+            reason = _helper_integrity_violation(helper_host_sha, helper_sha_before, after)
+            if reason is not None:
+                return _infrastructure_failure(
+                    rd, run_id, "HELPER_INTEGRITY",
+                    {"unexplained_changes": [reason], **helper_hash}, task,
+                )
         # Hard invariant: the helper must never be in the agent's final patch.
         if patch_manifest.get("helper_leak"):
             raise RuntimeError(

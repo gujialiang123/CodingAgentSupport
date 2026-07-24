@@ -101,3 +101,68 @@ def test_load_runs_rejects_mixed_protocol(tmp_path):
     with pytest.raises(ValueError, match="mixed protocol"):
         load_runs(tmp_path)
     assert len(load_runs(tmp_path, allow_mixed_protocol=True)) == 2
+
+
+# -- Phase 1A: helper-hash hard invariant -------------------------------------
+from se_support.runner.run_manager import _helper_integrity_violation  # noqa: E402
+
+
+def test_helper_integrity_valid_unchanged():
+    assert _helper_integrity_violation("abc", "abc", "abc") is None
+
+
+def test_helper_integrity_null_host():
+    assert _helper_integrity_violation(None, None, None) == "helper_host_sha_missing"
+    assert _helper_integrity_violation("", "x", "x") == "helper_host_sha_missing"
+
+
+def test_helper_integrity_before_mismatch():
+    r = _helper_integrity_violation("hostsha", "othersha", "othersha")
+    assert r is not None and "before_mismatch" in r
+
+
+def test_helper_integrity_after_mismatch():
+    r = _helper_integrity_violation("abc", "abc", "tampered")
+    assert r is not None and "after_mismatch" in r
+
+
+def test_p2p_regression_stats_denominators():
+    from se_support.analysis.aggregate import p2p_regression_stats
+
+    evals = [
+        {"patch_applies": True, "pass_to_pass_passed": 15, "pass_to_pass_total": 15},
+        {"patch_applies": True, "pass_to_pass_passed": 14, "pass_to_pass_total": 15},  # reg
+        {"patch_applies": True, "pass_to_pass_passed": 0, "pass_to_pass_total": 0},  # missing
+        {"patch_applies": False, "pass_to_pass_passed": 0, "pass_to_pass_total": 0},  # excluded
+    ]
+    s = p2p_regression_stats(evals)
+    assert s["applying"] == 3
+    assert s["p2p_usable"] == 2
+    assert s["p2p_regressing"] == 1
+    assert s["p2p_missing"] == 1
+    assert s["p2p_regression_rate"] == 0.5
+
+
+def test_load_runs_rejects_mixed_model(tmp_path):
+    import pytest
+
+    from se_support.analysis.aggregate import load_runs
+
+    # same protocol, different model -> rejected unless allowed.
+    d1 = tmp_path / "r1"
+    d1.mkdir()
+    d2 = tmp_path / "r2"
+    d2.mkdir()
+    import json as _json
+    for d, mdl in ((d1, "qwen3-coder-30b-a3b-instruct"), (d2, "qwen3.7-plus")):
+        (d / "run_spec.json").write_text(_json.dumps({
+            "run_id": d.name, "task_id": "repo__x-1", "condition": "C0_minimal",
+            "seed": 0, "protocol_version": "0.3.1", "model": mdl,
+            "condition_version": "0.2.0", "agent": "a"}))
+        (d / "eval_result.json").write_text(_json.dumps(
+            {"run_id": d.name, "resolved": True, "patch_applies": True}))
+        (d / "quality_card.json").write_text(_json.dumps(
+            {"run_id": d.name, "task_id": "repo__x-1", "quality_level": "Q2_functionally_correct"}))
+    with pytest.raises(ValueError, match="mixed models"):
+        load_runs(tmp_path)
+    assert len(load_runs(tmp_path, allow_mixed_model=True)) == 2

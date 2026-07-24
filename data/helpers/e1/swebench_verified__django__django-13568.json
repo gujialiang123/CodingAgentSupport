@@ -1,0 +1,17 @@
+{
+  "task_id": "swebench_verified__django__django-13568",
+  "test_source": "import pytest\nfrom django.core.checks import run_checks\nfrom django.core.checks.registry import registry\nfrom django.db import models\nfrom django.contrib.auth.models import AbstractBaseUser\nfrom django.db.models import UniqueConstraint\n\n\ndef test_auth_e003_skipped_with_unique_constraint():\n    \"\"\"Test that auth.E003 is skipped when USERNAME_FIELD has a UniqueConstraint.\"\"\"\n    \n    # Create a user model with USERNAME_FIELD that has a UniqueConstraint\n    class User(AbstractBaseUser):\n        username = models.CharField(max_length=30)\n        USERNAME_FIELD = \"username\"\n        \n        class Meta:\n            constraints = [UniqueConstraint(fields=[\"username\"], name=\"user_username_unq\")]\n    \n    # Run system checks\n    errors = run_checks()\n    \n    # Check that auth.E003 is NOT present in the errors\n    # This should pass once the fix is implemented\n    assert not any(\n        error.id == \"auth.E003\" and \"User.username\" in str(error)\n        for error in errors\n    )",
+  "run_command": "python -m pytest helper_test.py",
+  "generator_model": "qwen3-coder-30b-a3b-instruct",
+  "prompt_hash": "sha256:d7ffd252eda74317382c5aea85113b769649f9c480f68771c2cf126eb2d7f32c",
+  "candidate_index": 0,
+  "frozen_hash": "sha256:3b89c443cca72b51f98a994f5b5f383cd99392c643dc18163d462f17d165e486",
+  "collected": true,
+  "fail_before": true,
+  "pass_after_gold": false,
+  "classification": "T2_incompatible_oracle",
+  "issue_provenance_ok": true,
+  "suspicious_literals": [],
+  "audit_passed": null,
+  "notes": ""
+}
