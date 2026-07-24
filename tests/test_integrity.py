@@ -61,3 +61,43 @@ def test_patch_manifest_clean_agent_edit():
     assert m["helper_leak"] is False
     assert m["included_paths"] == ["requests/models.py"]
     assert m["patch_sha256"]
+
+
+def _write_run(root, run_id, cond, protocol="0.3.0", resolved=True, infra=False):
+    import json as _json
+    d = root / run_id
+    d.mkdir(parents=True)
+    (d / "run_spec.json").write_text(_json.dumps({
+        "run_id": run_id, "task_id": "repo__x-1", "condition": cond, "seed": 0,
+        "protocol_version": protocol, "agent": "a", "model": "m",
+    }))
+    (d / "eval_result.json").write_text(_json.dumps(
+        {"run_id": run_id, "resolved": resolved, "patch_applies": True}))
+    (d / "quality_card.json").write_text(_json.dumps(
+        {"run_id": run_id, "task_id": "repo__x-1", "quality_level": "Q2_functionally_correct"}))
+    if infra:
+        (d / "integrity").mkdir()
+        (d / "integrity" / "status.json").write_text(
+            _json.dumps({"status": "infrastructure_failure", "stage": "S0"}))
+
+
+def test_load_runs_excludes_infra_failures(tmp_path):
+    from se_support.analysis.aggregate import load_runs
+
+    _write_run(tmp_path, "r1", "C0_minimal")
+    _write_run(tmp_path, "r2", "C0_minimal", infra=True)
+    rows = load_runs(tmp_path)
+    assert len(rows) == 1
+    assert rows[0].task_id == "repo__x-1"
+
+
+def test_load_runs_rejects_mixed_protocol(tmp_path):
+    import pytest
+
+    from se_support.analysis.aggregate import load_runs
+
+    _write_run(tmp_path, "r1", "C0_minimal", protocol="0.3.0")
+    _write_run(tmp_path, "r2", "C0_minimal", protocol="2026-07-21")
+    with pytest.raises(ValueError, match="mixed protocol"):
+        load_runs(tmp_path)
+    assert len(load_runs(tmp_path, allow_mixed_protocol=True)) == 2

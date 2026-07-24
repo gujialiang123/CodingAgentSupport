@@ -30,17 +30,32 @@ class RunRow:
     manipulation_passed: bool | None = None
 
 
-def load_runs(experiment_dir: Path) -> list[RunRow]:
-    """Load all completed runs under ``runs/<experiment_id>/<experiment_id>/``."""
+def load_runs(experiment_dir: Path, allow_mixed_protocol: bool = False) -> list[RunRow]:
+    """Load all completed runs under ``runs/<experiment_id>/<experiment_id>/``.
+
+    Runs flagged ``infrastructure_failure`` (unclean base tree) are excluded — they
+    are invalid infrastructure, not agent outcomes. Refuses to aggregate across
+    differing ``protocol_version`` values unless ``allow_mixed_protocol`` is set
+    (integrity fix, Phase 5: 0.3.0 results are not comparable with earlier ones).
+    """
     experiment_dir = Path(experiment_dir)
     rows: list[RunRow] = []
+    protocols: set[str] = set()
     for run_dir in sorted(experiment_dir.glob("*/")):
         qc = run_dir / "quality_card.json"
         ev = run_dir / "eval_result.json"
         rs = run_dir / "run_spec.json"
         if not (qc.exists() and ev.exists() and rs.exists()):
             continue
+        status = run_dir / "integrity" / "status.json"
+        if status.exists():
+            try:
+                if json.loads(status.read_text()).get("status") == "infrastructure_failure":
+                    continue
+            except (OSError, json.JSONDecodeError):
+                pass
         spec = json.loads(rs.read_text())
+        protocols.add(spec.get("protocol_version", "unknown"))
         evalr = json.loads(ev.read_text())
         card = json.loads(qc.read_text())
         mc = run_dir / "manipulation.json"
@@ -50,6 +65,12 @@ def load_runs(experiment_dir: Path) -> list[RunRow]:
             resolved=bool(evalr.get("resolved")), patch_applies=bool(evalr.get("patch_applies")),
             quality=card.get("quality_level", "Q0_invalid"), manipulation_passed=manip,
         ))
+    if len(protocols) > 1 and not allow_mixed_protocol:
+        raise ValueError(
+            f"refusing to aggregate mixed protocol_versions {sorted(protocols)}; "
+            "0.3.0 (integrity-fixed) results are not comparable with earlier runs. "
+            "Pass allow_mixed_protocol=True to override."
+        )
     return rows
 
 
@@ -171,8 +192,9 @@ class AnalysisReport:
 
 
 def analyze(experiment_dir: Path, experiment_id: str,
-            baseline: str = "C0_minimal") -> AnalysisReport:
-    rows = load_runs(experiment_dir)
+            baseline: str = "C0_minimal",
+            allow_mixed_protocol: bool = False) -> AnalysisReport:
+    rows = load_runs(experiment_dir, allow_mixed_protocol=allow_mixed_protocol)
     summaries = summarize_by_condition(rows)
     conds = [s.condition for s in summaries if s.condition != baseline]
     contrasts = [paired_contrast(rows, c, baseline) for c in conds]

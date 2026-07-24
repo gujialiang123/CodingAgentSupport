@@ -19,12 +19,16 @@ def main() -> int:
     ap.add_argument("--experiment-id", required=True)
     ap.add_argument("--runs", default="runs")
     ap.add_argument("--baseline", default="C0_minimal")
+    ap.add_argument("--allow-mixed-protocol", action="store_true",
+                    help="aggregate runs across differing protocol_versions "
+                         "(0.3.0 integrity-fixed runs are NOT comparable with earlier ones)")
     ap.add_argument("--output", default=None, help="Markdown output path.")
     ap.add_argument("--json", default=None, help="Optional JSON output path.")
     args = ap.parse_args()
 
     exp_dir = Path(args.runs) / args.experiment_id / args.experiment_id
-    report = analyze(exp_dir, args.experiment_id, baseline=args.baseline)
+    report = analyze(exp_dir, args.experiment_id, baseline=args.baseline,
+                     allow_mixed_protocol=args.allow_mixed_protocol)
     md = format_report(report)
     print(md)
     if args.output:
